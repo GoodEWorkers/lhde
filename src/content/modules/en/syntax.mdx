@@ -1,0 +1,309 @@
+---
+route: syntax
+lang: en
+order: 3
+phase: 2
+level: core
+title: Syntactic interoperability
+subtitle: Messages, documents, APIs, events and files.
+outcome: >-
+  Distinguish transport, interaction, structure and meaning, then choose an exchange pattern from
+  clinical and organisational constraints.
+duration: 55
+question: Message, document, API, event or file — how do you choose?
+agenda:
+  - Syntax, transport, interaction, semantics
+  - The five exchange patterns
+  - Formats are not patterns
+  - Six questions to choose
+  - Argus, a deliberately multi-pattern case
+argus: >-
+  Argus needs near-real-time data from several silos. There is no single "right" pattern: assign one
+  pattern per source and defend each choice in front of the group.
+sources:
+  - MCLB 3 — Focus on syntactic interoperability (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+
+## Four questions we stack without noticing
+
+Before asking what a message *means*, ask how it *travels* and how it is *structured*. These four
+columns are independent, and confusing them is expensive.
+
+<CardGrid
+  columns={4}
+  cards={[
+    {
+      tag: 'Transport',
+      title: 'Can systems reach each other?',
+      body: 'HTTP, MLLP, SFTP, messaging bus. Encryption, authentication, availability.',
+    },
+    {
+      tag: 'Interaction',
+      title: 'Who initiates the exchange?',
+      body: 'Push, pull, event, query, subscription. Who decides when the data moves.',
+    },
+    {
+      tag: 'Structure',
+      title: 'What does the payload look like?',
+      body: 'HL7 v2, CDA, FHIR JSON/XML, DICOM. Shape, not meaning.',
+    },
+    {
+      tag: 'Meaning',
+      title: 'What does the data mean?',
+      body: 'SNOMED CT, LOINC, UCUM, local codes. That is the next module.',
+    },
+  ]}
+  caption="Syntactic interoperability mostly covers the first three columns. The fourth is a different craft."
+/>
+
+<Callout variant="key">
+A syntactically valid exchange can still be clinically useless. That is the one sentence to keep from
+this module.
+</Callout>
+
+## The five exchange patterns
+
+| Pattern | Principle | Typical standard |
+| --- | --- | --- |
+| **Message push** | An event occurs, a message is sent | HL7 v2 ADT / ORU |
+| **Document exchange** | A stable document is published or shared | CDA, PDF, national record |
+| **Resource API** | A client reads, writes, searches resources | FHIR REST |
+| **Event / subscription** | Systems react to changes | FHIR Subscription, broker |
+| **Batch / file / ETL** | Data is exported, processed later | CSV, flat files, bulk export |
+
+The choice depends as much on the business as on the technology. One at a time.
+
+### 1 — Message push
+
+A system sends a message when a business event occurs: admission, lab result, appointment creation.
+The classic path is *source → integration engine → downstream applications*.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Useful when',
+      title: 'An event must notify quickly',
+      tone: 'orange',
+      points: ['Identity update', 'Lab result available', 'Appointment created or changed'],
+    },
+    {
+      label: 'Limits',
+      title: 'Coupling and reliability',
+      tone: 'yellow',
+      points: [
+        'Tight coupling between sender and receiver',
+        'Retries, message ordering, duplicates',
+        'Partial context: the receiver must fill the gaps itself',
+        'Local interpretation of segments',
+      ],
+    },
+  ]}
+/>
+
+### 2 — Document exchange
+
+A document is a **stable** clinical artefact: it can be signed, stored, shared and audited. Discharge
+report, patient summary, prescription, referral letter.
+
+Good for medico-legal trace, record sharing, cross-organisation continuity. Syntax options: PDF, CDA,
+FHIR Document Bundle, national templates.
+
+<Callout variant="warning">
+A document can be **readable without being computable**. The right question is not "which format?"
+but: is the expected use human reading, machine processing, or both?
+</Callout>
+
+### 3 — API / query / pull
+
+The client asks for the data it needs, when it needs it.
+
+```http
+GET  /Patient?identifier=urn:oid:1.2.250.1.213.1.4.8|123456789
+GET  /Observation?patient=123&code=http://loinc.org|2823-3
+POST /Appointment
+GET  /PractitionerRole?organization=Organization/42
+```
+
+Strengths: real-time access, search, modular reuse, an application ecosystem, mobile apps. Limits:
+governance, authorisation, performance, versioning, and an explicit API contract — without which
+every consumer reinvents its own assumptions.
+
+### 4 — Events and subscriptions
+
+Modern systems react to changes rather than polling repeatedly. Admissions and scheduling publish; a
+mobile app and a command centre subscribe; a broker distributes.
+
+Examples: appointment changed, new result available, bed status updated, device alert triggered.
+
+### 5 — Batch, files and ETL
+
+Not every exchange is real-time. Some cases tolerate delay or require large extracts: `source.csv`,
+`patients.json`, `observations.ndjson`, `study.zip`, FHIR Bulk Data.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Good for',
+      title: 'Volume and hindsight',
+      tone: 'orange',
+      points: ['Large extracts', 'Reporting', 'Migration', 'Research cohorts', 'Historical data'],
+    },
+    {
+      label: 'Bad for',
+      title: 'Coordination',
+      tone: 'yellow',
+      points: ['Real-time coordination', 'Operational workflows', 'Safety-critical alerts'],
+    },
+    {
+      label: 'Key risk',
+      title: 'Two parallel worlds',
+      tone: 'purple',
+      points: [
+        'Operational and analytical data drift apart.',
+        'Nobody can say which one is authoritative.',
+        'ETL becomes the only integration strategy — and the trap closes.',
+      ],
+    },
+  ]}
+/>
+
+## Formats are not patterns
+
+| Format | Typical shape | Can be used for |
+| --- | --- | --- |
+| HL7 v2 | pipe-delimited text | messages |
+| CDA | XML document | clinical documents |
+| FHIR | JSON / XML / RDF | API, document, message, bulk |
+| DICOM | binary + metadata | imaging |
+| CSV / NDJSON | flat / line-delimited | batch, analytics |
+
+<Callout variant="key">
+The same format can support several patterns. FHIR can be an API, a document, a message or a bulk
+export. Saying "we do FHIR" therefore describes **no** architecture at all.
+</Callout>
+
+## Six questions to choose
+
+<Reveal question="Before reading the list: which questions would you ask a business owner to decide between API and document?">
+The six below cover the essentials. If you found three of them, you already have the architect
+reflex.
+
+1. Is the data needed **immediately**?
+2. Does the receiver need the **full context** or only a notification?
+3. Is the artefact **medico-legal** and stable over time?
+4. Will the data be reused by **many** applications?
+5. Is the exchange **operational** or **analytical**?
+6. Who owns **correction**, **audit** and **reconciliation**?
+</Reveal>
+
+<Callout variant="key">
+Syntax is an architectural choice, not just a developer preference.
+</Callout>
+
+## Argus, a deliberately multi-pattern case
+
+Argus needs near-real-time data from several silos: patient identity, appointments, hospital
+structure, resources, equipment, operational events.
+
+There is no single "right" pattern. Identity and structure suit an API; appointments suit events;
+history suits batch; documents stay documents. The control tower becomes possible once the patterns
+are **explicitly selected and combined**.
+
+## Activity — choose the pattern
+
+<MatchActivity
+  id="pattern-choice"
+  title="Which pattern for which situation?"
+  instruction="For each situation, choose the most suitable exchange pattern."
+  options={[
+    { id: 'push', label: 'Message push' },
+    { id: 'document', label: 'Document' },
+    { id: 'api', label: 'API / query' },
+    { id: 'event', label: 'Event' },
+    { id: 'batch', label: 'Batch / export' },
+  ]}
+  items={[
+    {
+      text: 'A new appointment is created and the control tower must update its workload view.',
+      answer: 'event',
+      note: 'A state change broadcast to several consumers: subscription rather than point-to-point.',
+    },
+    {
+      text: 'A discharge report must be shared with the patient and another hospital.',
+      answer: 'document',
+      note: 'A stable, signable, auditable, human-readable artefact.',
+    },
+    {
+      text: 'A mobile app needs the latest allergy list every time it opens.',
+      answer: 'api',
+      note: 'On-demand read, at the moment the client needs it.',
+    },
+    {
+      text: 'A research team needs five years of anonymised observations.',
+      answer: 'batch',
+      note: 'Large volume, no real-time constraint: export or bulk data.',
+    },
+    {
+      text: 'A bed cleaning status changes and triggers operational re-planning.',
+      answer: 'event',
+      note: 'A state change triggers a reaction; the broker avoids direct coupling.',
+    },
+    {
+      text: 'The admission system must immediately notify the EHR that a patient has been admitted.',
+      answer: 'push',
+      note: 'A direct notification expected by an identified receiver: HL7 v2 ADT still fits.',
+    },
+  ]}
+/>
+
+## Mini quiz
+
+<Quiz
+  id="m3-quiz"
+  title="Check that format and pattern are no longer confused"
+  questions={[
+    {
+      q: 'FHIR always means "REST API".',
+      options: ['True', 'False'],
+      answer: 1,
+      explain:
+        'FHIR supports REST, but also documents, messaging and bulk data. The paradigm is chosen independently of the standard.',
+    },
+    {
+      q: 'A valid HL7 v2 message guarantees semantic interoperability.',
+      options: ['True', 'False'],
+      answer: 1,
+      explain:
+        'It can be structurally valid and still carry local codes or ambiguous meanings. Validity of shape says nothing about meaning.',
+    },
+    {
+      q: 'A document is often the right choice when medico-legal trace and stable human-readable content matter.',
+      options: ['True', 'False'],
+      answer: 0,
+      explain:
+        'That is exactly what the document pattern optimises: signature, archiving, sharing, audit, readability.',
+    },
+    {
+      q: 'An architecture should pick one exchange pattern and stick to it.',
+      options: ['True', 'False'],
+      answer: 1,
+      explain:
+        'Patterns solve different problems. A realistic architecture — like Argus — combines them explicitly and documents each choice.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+Syntactic interoperability is about **structuring and moving** data.
+
+- Patterns matter: push, pull, document, event and batch solve different problems.
+- Formats matter: HL7 v2, CDA, FHIR, DICOM, CSV/NDJSON each carry different assumptions.
+- But syntax is not enough. The next module explains how **shared meaning** is manufactured.

@@ -1,0 +1,71 @@
+---
+import Logo from './Logo.astro';
+import { getLangFromUrl, useTranslations, localePath, switchLocalePath, languages, type Lang } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const links = [
+  { href: localePath(lang), label: t('nav.home') },
+  { href: localePath(lang, 'modules'), label: t('nav.pathway') },
+  { href: localePath(lang, 'argus'), label: t('nav.case') },
+  { href: localePath(lang, 'capstone'), label: t('nav.capstone') },
+  { href: localePath(lang, 'glossary'), label: t('nav.glossary') },
+  { href: localePath(lang, 'resources'), label: t('nav.resources') },
+];
+---
+
+<footer class="relative z-10 mt-24 bg-white text-black">
+  <div class="container-x grid gap-12 py-14 md:grid-cols-3">
+    <div>
+      <Logo class="[&_span]:!text-black" />
+      <p class="mt-6 max-w-sm text-sm leading-relaxed text-black/70">
+        {t('site.description')}
+      </p>
+      <a href={localePath(lang, 'modules')} class="pill-orange mt-8">
+        {t('hero.cta.start')}
+      </a>
+    </div>
+
+    <nav aria-label={t('footer.nav')}>
+      <h2 class="font-clash text-2xl font-bold">{t('footer.nav')}</h2>
+      <ul class="mt-5 space-y-2 text-sm font-bold">
+        {
+          links.map((l) => (
+            <li>
+              <a href={l.href} class="hover:text-orange hover:underline">
+                {l.label}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+
+    <div>
+      <h2 class="font-clash text-2xl font-bold">{t('footer.lang')}</h2>
+      <div class="mt-5 flex gap-2">
+        {
+          (Object.keys(languages) as Lang[]).map((l) => (
+            <a
+              href={switchLocalePath(Astro.url, l)}
+              hreflang={l}
+              class:list={[
+                'rounded-full border-2 border-black px-4 py-1.5 text-sm font-bold',
+                l === lang ? 'bg-black text-white' : 'hover:bg-black hover:text-white',
+              ]}
+            >
+              {languages[l]}
+            </a>
+          ))
+        }
+      </div>
+
+      <h2 class="mt-10 font-clash text-2xl font-bold">{t('footer.about')}</h2>
+      <p class="mt-4 max-w-sm text-xs leading-relaxed text-black/60">
+        {t('footer.built')}
+      </p>
+      <p class="mt-3 text-xs text-black/60">Grant Agreement 101187650 — Xpanding innovative Alliance (XiA).</p>
+    </div>
+  </div>
+</footer>

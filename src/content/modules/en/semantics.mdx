@@ -1,0 +1,310 @@
+---
+route: semantics
+lang: en
+order: 4
+phase: 2
+level: core
+title: Semantic interoperability
+subtitle: Terminologies, codification, mappings and terminology servers.
+outcome: >-
+  Use the FHIR terminology vocabulary — CodeSystem, ValueSet, Coding, CodeableConcept, ConceptMap —
+  and know which terminology-server operation answers which question.
+duration: 60
+question: "\"K = 4.2\" — what is missing before this is usable?"
+agenda:
+  - Why syntax is not enough
+  - The native ambiguity of medical vocabulary
+  - Codification and FHIR terminology resources
+  - The five terminology-server operations
+  - Mappings, logical models and governance
+argus: >-
+  Argus displays a bed status of "AVAIL". Where does that code come from, which CodeSystem does it
+  live in, and what happens when a third silo sends "FREE"?
+sources:
+  - MCLB 4 — Focus on semantic interoperability (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import Checklist from '../../../components/Checklist.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+
+## A perfectly valid, perfectly incomprehensible message
+
+```json
+{ "code": "K", "value": 4.2, "unit": "?" }
+```
+
+Syntax says: the payload is valid and parsable. Semantics asks: do both systems understand the same
+clinical concept? Safety asks: can a decision be made on this?
+
+<Reveal question="List the questions these three fields leave open, before reading on.">
+- Does `K` mean potassium — or something else in the sender's local registry?
+- Which **specimen**: serum, plasma, urine?
+- Which measurement **method**?
+- Which **unit**: mmol/L, mEq/L?
+- Which **reference range**, and for which population?
+
+Five questions, no answers. And yet the message passes validation.
+</Reveal>
+
+<Callout variant="warning">
+The most dangerous interoperability failures are **invisible**. Interoperability fails when meaning
+is *assumed* instead of *specified*.
+</Callout>
+
+## Medical vocabulary is ambiguous by nature
+
+<CardGrid
+  columns={4}
+  cards={[
+    { tag: 'Synonyms', title: 'One concept, several words', body: '"Heart attack" and "myocardial infarction" name the same thing.' },
+    { tag: 'Acronyms', title: 'One word, several concepts', body: 'BP = blood pressure, or British Pharmacopoeia. Only context decides.' },
+    { tag: 'Granularity', title: 'How precise?', body: 'Diabetes: type 1? type 2? gestational? The word does not say.' },
+    { tag: 'Local usage', title: 'Same code, other meaning', body: 'An identical local code can mean something else in the hospital next door.' },
+  ]}
+  caption="Codification assigns stable identifiers to clinical concepts so machines can reason safely."
+/>
+
+## From words to computable meaning
+
+| Concept | System | Code |
+| --- | --- | --- |
+| Myocardial infarction | SNOMED CT | `22298006` |
+| Serum potassium | LOINC | `2823-3` |
+| millimole per litre | UCUM | `mmol/L` |
+
+Three rules follow from that table:
+
+- a code only means something **inside** a code system;
+- the display text helps humans but **must not** be the source of truth;
+- the same clinical concept can be represented in several terminologies depending on the use case.
+
+### The main terminologies
+
+| Terminology | Domain | Steward |
+| --- | --- | --- |
+| SNOMED CT | clinical findings, procedures, body structures | SNOMED International |
+| LOINC | observations, laboratory tests, measurements, documents | Regenstrief Institute |
+| UCUM | units of measure | Regenstrief / UCUM |
+| ICD | disease classification and statistics | WHO |
+| ATC | medicines classification | WHO Collaborating Centre |
+
+<Callout variant="key">
+No terminology covers everything. Semantic design is about **choosing the right one for the right
+field** — and then documenting the choice.
+</Callout>
+
+## FHIR terminology resources
+
+<CardGrid
+  columns={2}
+  cards={[
+    { tag: 'NamingSystem', title: 'Identify the systems', body: 'Declares systems and identifier namespaces: which OID, which URI, which authority.' },
+    { tag: 'CodeSystem', title: 'Define the concepts', body: 'Defines concepts, codes, displays and properties. The full dictionary.' },
+    { tag: 'ValueSet', title: 'Narrow to a context', body: 'Defines the allowed subset for a given use. The list your field will accept.' },
+    { tag: 'ConceptMap', title: 'Connect two worlds', body: 'Describes how concepts in one system correspond to those of another system or model.' },
+  ]}
+  caption="These resources turn meaning into an exchangeable and testable part of the implementation guide."
+/>
+
+### Binding: constraining meaning
+
+A profile does not only constrain cardinalities: it can **bind** an element to a ValueSet. The
+binding strength states how obligatory that is.
+
+| Strength | Meaning |
+| --- | --- |
+| `required` | The code **must** come from the ValueSet. |
+| `extensible` | Use the ValueSet if possible; otherwise justify. |
+| `preferred` | Recommended but not mandatory. |
+| `example` | Illustrative only. |
+
+## The terminology server: meaning as a service
+
+A terminology server is the central source of truth for code systems, value sets, mappings and their
+versions. It lets applications validate, expand, inspect and translate codes **without hard-coding
+terminology logic**.
+
+It is essential to reproducibility: same code, same system, same version, same ValueSet context.
+
+### The five operations to know
+
+| Operation | The question it answers |
+| --- | --- |
+| `$expand` | Which codes does this ValueSet allow? |
+| `$lookup` | What does this code mean, what are its properties? |
+| `$validate-code` | Is this code valid in this context? |
+| `$translate` | Which code in another system corresponds to it? |
+| `$subsumes` | Is this concept broader, narrower, equivalent? |
+
+<Callout variant="key">
+Almost every terminology need reduces to one of those five questions: **list, inspect, validate,
+translate, classify**.
+</Callout>
+
+## Mapping is not copying fields
+
+A mapping declares how **meanings** relate. FHIR `ConceptMap` forces you to name that relationship.
+
+| Relationship | Meaning | Example |
+| --- | --- | --- |
+| `equivalent` | same meaning | `PID-9.2` → `Patient.name.given` |
+| `source-is-narrower-than-target` | source is more specific | precise timestamp → broader datetime |
+| `source-is-broader-than-target` | source is less specific | general event time → precise field |
+| `related-to` | related but not equivalent | "phone" field → `telecom` concept |
+| `not-related-to` | explicit mismatch | multiple birth ≠ gender |
+
+<Callout variant="warning">
+Declaring `equivalent` by default is the most frequent and most expensive mistake. A wrongly named
+relationship produces **silent** information loss.
+</Callout>
+
+## Logical models: protecting business meaning
+
+Before choosing a FHIR resource, clarify the business concept.
+
+**Business concept → logical model → FHIR profile** *(and, in parallel, → legacy format)*
+
+- A logical model expresses functional requirements independently of FHIR or HL7 v2.
+- It can act as a **pivot model** for mapping to several standards.
+- It reduces the risk of letting one technical representation define the business meaning.
+
+## Semantics requires governance
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Versioning', title: 'Which release?', body: 'Which version of SNOMED, LOINC or the local terminology is authoritative today?' },
+    { tag: 'Ownership', title: 'Who validates?', body: 'Who approves a new local code or a new mapping, and through which route?' },
+    { tag: 'Lifecycle', title: 'What about deprecated codes?', body: 'How are retired codes handled in data already stored?' },
+    { tag: 'Validation', title: 'Where is it checked?', body: 'At which point in the chain are codes verified before ingestion?' },
+    { tag: 'Traceability', title: 'Why this mapping?', body: 'Two years later, can you still explain why that correspondence was chosen?' },
+    { tag: 'Testing', title: 'Is it testable?', body: 'Can the semantic rules be checked automatically in continuous integration?' },
+  ]}
+  caption="Terminology is not a one-off mapping task: it is a maintained asset."
+/>
+
+## Activity — make the data computable
+
+You receive `K = 4.2`. What must be added before it can safely feed Argus or clinical decision
+support?
+
+<Checklist
+  id="semantic-completeness"
+  title="Semantic completeness checklist"
+  intro="Tick as you go. While one box is empty, the data is not safe for a decision."
+  items={[
+    'Choose the clinical concept code (e.g. LOINC 2823-3)',
+    'Specify the code system and its version',
+    'Specify the unit with UCUM (mmol/L)',
+    'Specify the specimen and context',
+    'Bind the element to a ValueSet',
+    'Validate through a terminology server ($validate-code)',
+    'Map the local code if needed (ConceptMap)',
+    'Document assumptions and governance',
+  ]}
+/>
+
+## Activity — which operation do you call?
+
+<MatchActivity
+  id="termserver-ops"
+  title="The right call for the right question"
+  instruction="For each need, choose the matching terminology-server operation."
+  options={[
+    { id: 'expand', label: '$expand' },
+    { id: 'lookup', label: '$lookup' },
+    { id: 'validate', label: '$validate-code' },
+    { id: 'translate', label: '$translate' },
+    { id: 'subsumes', label: '$subsumes' },
+  ]}
+  items={[
+    {
+      text: 'Populate the "reason for admission" dropdown in the user interface.',
+      answer: 'expand',
+      note: 'You are asking for the full set of codes the ValueSet allows.',
+    },
+    {
+      text: 'Display the official label and properties of a code you just received.',
+      answer: 'lookup',
+      note: 'Inspecting a single code, with no notion of an allowed context.',
+    },
+    {
+      text: 'Reject at ingestion a bed status that is not in the shared registry.',
+      answer: 'validate',
+      note: 'Membership check against a context: the gate before storage.',
+    },
+    {
+      text: 'Convert the maintenance system\'s local code "FREE" into the shared Argus code.',
+      answer: 'translate',
+      note: 'Moving from one system to another, through a ConceptMap.',
+    },
+    {
+      text: 'Check that "type 2 diabetes" is indeed a specialisation of "diabetes".',
+      answer: 'subsumes',
+      note: 'A hierarchy test: broader, narrower, equivalent.',
+    },
+  ]}
+/>
+
+## Mini quiz
+
+<Quiz
+  id="m4-quiz"
+  title="Three checks on the semantic vocabulary"
+  questions={[
+    {
+      q: 'A CodeSystem defines all the concepts and codes of a system.',
+      options: ['True', 'False'],
+      answer: 0,
+      explain:
+        'Correct. A ValueSet, by contrast, selects the codes allowed in a given context. The two resources play different roles.',
+    },
+    {
+      q: 'A display label is enough to guarantee meaning.',
+      options: ['True', 'False'],
+      answer: 1,
+      explain:
+        'The source of truth is system + code + context and version. The display is a convenience, not a guarantee.',
+    },
+    {
+      q: 'What is $validate-code for?',
+      options: [
+        'Listing every code in a CodeSystem.',
+        'Checking that a code is allowed in a given context.',
+        'Translating a code into another system.',
+        'Testing a hierarchical relationship.',
+      ],
+      answer: 1,
+      explain:
+        'It is the key operation before storing or ingesting coded data: it stops an unauthorised code entering the foundation.',
+    },
+    {
+      q: 'A mapping declared "equivalent" when the source is actually finer-grained…',
+      options: [
+        'is acceptable, the data still flows.',
+        'causes silent information loss.',
+        'is automatically rejected by the terminology server.',
+        'only affects display.',
+      ],
+      answer: 1,
+      explain:
+        'Nothing blocks it technically, and that is precisely the danger: granularity disappears with no alert raised.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+Semantic interoperability makes health data **computable, comparable and safe to reuse**.
+
+- Terminologies reduce ambiguity by assigning stable identifiers to concepts.
+- FHIR connects structure to meaning through CodeSystem, ValueSet, ConceptMap and bindings.
+- Terminology servers turn meaning into a service: expand, lookup, validate, translate, classify.
+- Logical models protect business meaning before technical implementation.
+
+Next step: position the standards and organisations inside the full ecosystem.

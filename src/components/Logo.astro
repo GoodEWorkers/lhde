@@ -1,0 +1,28 @@
+---
+interface Props {
+  class?: string;
+}
+const { class: klass = '' } = Astro.props;
+---
+
+<span class={`inline-flex items-baseline gap-2 font-clash text-xl font-bold tracking-tight md:text-2xl ${klass}`}>
+  <svg
+    width="26"
+    height="26"
+    viewBox="0 0 24 24"
+    fill="none"
+    aria-hidden="true"
+    class="translate-y-[3px]"
+  >
+    <!-- six stacked ReEIF layers, the visual signature of the pathway -->
+    <rect x="2" y="17.5" width="20" height="2.6" rx="1.3" fill="#FD5E09"></rect>
+    <rect x="2" y="13.7" width="20" height="2.6" rx="1.3" fill="#FDC959"></rect>
+    <rect x="2" y="9.9" width="20" height="2.6" rx="1.3" fill="#B3A0CF"></rect>
+    <rect x="2" y="6.1" width="14" height="2.6" rx="1.3" fill="#ECECEC"></rect>
+    <rect x="2" y="2.3" width="9" height="2.6" rx="1.3" fill="#8A8A8A"></rect>
+  </svg>
+  <span class="text-grey">LHDE</span>
+  <span class="hidden text-[0.7rem] font-medium tracking-wide text-midgray lg:inline">
+    Learn Health Data Exchange
+  </span>
+</span>

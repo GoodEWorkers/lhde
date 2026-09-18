@@ -1,0 +1,314 @@
+---
+route: semantics
+lang: fr
+order: 4
+phase: 2
+level: core
+title: Interopérabilité sémantique
+subtitle: Terminologies, codification, mappings et serveurs de terminologie.
+outcome: >-
+  Utiliser le vocabulaire FHIR de la terminologie — CodeSystem, ValueSet, Coding, CodeableConcept,
+  ConceptMap — et savoir quelle opération de serveur de terminologie répond à quelle question.
+duration: 60
+question: « K = 4.2 » — que manque-t-il pour que ce soit exploitable ?
+agenda:
+  - Pourquoi la syntaxe ne suffit pas
+  - L’ambiguïté native du vocabulaire médical
+  - Codification et ressources FHIR de terminologie
+  - Les cinq opérations d’un serveur de terminologie
+  - Mappings, modèles logiques et gouvernance
+argus: >-
+  Argus affiche un statut de lit « DISPO ». D’où vient ce code, dans quel CodeSystem vit-il, et que
+  se passe-t-il quand un troisième silo envoie « LIBRE » ?
+sources:
+  - MCLB 4 — Focus sur l’interopérabilité sémantique (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import Checklist from '../../../components/Checklist.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+
+## Un message parfaitement valide, parfaitement incompréhensible
+
+```json
+{ "code": "K", "value": 4.2, "unit": "?" }
+```
+
+La syntaxe dit : la charge utile est valide et parsable. La sémantique demande : les deux systèmes
+parlent-ils du même concept clinique ? La sécurité demande : peut-on décider sur cette base ?
+
+<Reveal question="Listez les questions ouvertes par ces trois champs avant de continuer.">
+- `K` désigne-t-il le potassium — ou autre chose dans le référentiel local de l’émetteur ?
+- Quel **prélèvement** : sérum, plasma, urines ?
+- Quelle **méthode** de mesure ?
+- Quelle **unité** : mmol/L, mEq/L ?
+- Quelles **valeurs de référence**, et pour quelle population ?
+
+Cinq questions, aucune réponse. Et pourtant le message passe la validation.
+</Reveal>
+
+<Callout variant="warning">
+Les défaillances d’interopérabilité les plus dangereuses sont **invisibles**. L’interopérabilité
+échoue quand le sens est *supposé* au lieu d’être *spécifié*.
+</Callout>
+
+## Le vocabulaire médical est ambigu par nature
+
+<CardGrid
+  columns={4}
+  cards={[
+    { tag: 'Synonymes', title: 'Un concept, plusieurs mots', body: '« Crise cardiaque » et « infarctus du myocarde » désignent la même chose.' },
+    { tag: 'Acronymes', title: 'Un mot, plusieurs concepts', body: 'BP = blood pressure, ou British Pharmacopoeia. Le contexte seul tranche.' },
+    { tag: 'Granularité', title: 'Quel niveau de précision ?', body: 'Diabète : type 1 ? type 2 ? gestationnel ? Le mot ne le dit pas.' },
+    { tag: 'Usage local', title: 'Même code, autre sens', body: 'Un code local identique peut signifier autre chose dans l’établissement voisin.' },
+  ]}
+  caption="La codification attribue des identifiants stables aux concepts cliniques pour que les machines puissent raisonner sans danger."
+/>
+
+## De mots à sens calculable
+
+| Concept | Système | Code |
+| --- | --- | --- |
+| Infarctus du myocarde | SNOMED CT | `22298006` |
+| Potassium sérique | LOINC | `2823-3` |
+| millimole par litre | UCUM | `mmol/L` |
+
+Trois règles suivent de ce tableau :
+
+- un code n’a de sens **qu’à l’intérieur** d’un système de codes ;
+- le libellé d’affichage aide les humains mais **ne doit pas** être la source de vérité ;
+- le même concept clinique peut se représenter dans plusieurs terminologies selon l’usage.
+
+### Les grandes terminologies
+
+| Terminologie | Domaine | Responsable |
+| --- | --- | --- |
+| SNOMED CT | constats cliniques, actes, structures corporelles | SNOMED International |
+| LOINC | observations, examens de laboratoire, mesures, documents | Regenstrief Institute |
+| UCUM | unités de mesure | Regenstrief / UCUM |
+| ICD | classification des maladies et statistiques | OMS |
+| ATC | classification des médicaments | Centre collaborateur OMS |
+
+<Callout variant="key">
+Aucune terminologie ne couvre tout. La conception sémantique consiste à **choisir la bonne
+terminologie pour le bon champ** — puis à le documenter.
+</Callout>
+
+## Les ressources FHIR de terminologie
+
+<CardGrid
+  columns={2}
+  cards={[
+    { tag: 'NamingSystem', title: 'Identifier les systèmes', body: 'Déclare les systèmes et les espaces de nommage d’identifiants : quel OID, quelle URI, quelle autorité.' },
+    { tag: 'CodeSystem', title: 'Définir les concepts', body: 'Définit concepts, codes, libellés et propriétés. C’est le dictionnaire complet.' },
+    { tag: 'ValueSet', title: 'Restreindre à un contexte', body: 'Définit le sous-ensemble autorisé pour un usage donné. C’est la liste que votre champ accepte.' },
+    { tag: 'ConceptMap', title: 'Relier deux mondes', body: 'Décrit comment les concepts d’un système correspondent à ceux d’un autre système ou modèle.' },
+  ]}
+  caption="Ces ressources transforment le « sens » en une partie échangeable et testable du guide d’implémentation."
+/>
+
+### Le binding : contraindre le sens
+
+Un profil ne contraint pas seulement les cardinalités : il peut **lier** un élément à un ValueSet.
+La force du binding indique le degré d’obligation.
+
+| Force | Signification |
+| --- | --- |
+| `required` | Le code **doit** appartenir au ValueSet. |
+| `extensible` | Utiliser le ValueSet si possible ; sinon, justifier. |
+| `preferred` | ValueSet recommandé mais non obligatoire. |
+| `example` | Illustration informative uniquement. |
+
+## Le serveur de terminologie : le sens comme service
+
+Un serveur de terminologie est la source de vérité centrale pour les systèmes de codes, les
+ValueSets, les mappings et leurs versions. Il permet aux applications de valider, étendre, inspecter
+et traduire des codes **sans coder en dur la logique terminologique**.
+
+Il est indispensable à la reproductibilité : même code, même système, même version, même contexte de
+ValueSet.
+
+### Les cinq opérations à connaître
+
+| Opération | Question à laquelle elle répond |
+| --- | --- |
+| `$expand` | Quels codes ce ValueSet autorise-t-il ? |
+| `$lookup` | Que signifie ce code, quelles sont ses propriétés ? |
+| `$validate-code` | Ce code est-il valide dans ce contexte ? |
+| `$translate` | À quel code d’un autre système correspond-il ? |
+| `$subsumes` | Ce concept est-il plus large, plus étroit, équivalent ? |
+
+<Callout variant="key">
+Presque tout besoin terminologique se ramène à l’une de ces cinq questions : **lister, inspecter,
+valider, traduire, classer**.
+</Callout>
+
+## Mapper n’est pas copier des champs
+
+Un mapping déclare comment des **significations** se relient. FHIR `ConceptMap` impose de nommer
+cette relation.
+
+| Relation | Sens | Exemple |
+| --- | --- | --- |
+| `equivalent` | même signification | `PID-9.2` → `Patient.name.given` |
+| `source-is-narrower-than-target` | la source est plus spécifique | horodatage précis → date-heure plus large |
+| `source-is-broader-than-target` | la source est moins spécifique | heure d’événement générale → champ précis |
+| `related-to` | lié sans être équivalent | champ « téléphone » → concept `telecom` |
+| `not-related-to` | incompatibilité explicite | naissance multiple ≠ sexe |
+
+<Callout variant="warning">
+Déclarer `equivalent` par défaut est l’erreur la plus fréquente et la plus coûteuse. Une relation
+mal nommée produit une perte d’information **silencieuse**.
+</Callout>
+
+## Modèles logiques : protéger le sens métier
+
+Avant de choisir une ressource FHIR, clarifiez le concept métier.
+
+**Concept métier → modèle logique → profil FHIR** *(et, en parallèle, → format legacy)*
+
+- Un modèle logique exprime des exigences fonctionnelles indépendamment de FHIR ou HL7 v2.
+- Il peut servir de **modèle pivot** pour mapper vers plusieurs standards.
+- Il réduit le risque de laisser une représentation technique définir le sens métier.
+
+## La sémantique exige de la gouvernance
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Versionnement', title: 'Quelle release ?', body: 'Quelle version de SNOMED, LOINC ou de la terminologie locale fait foi aujourd’hui ?' },
+    { tag: 'Propriété', title: 'Qui valide ?', body: 'Qui approuve un nouveau code local ou un nouveau mapping, et selon quel circuit ?' },
+    { tag: 'Cycle de vie', title: 'Et les codes obsolètes ?', body: 'Comment traite-t-on les codes dépréciés dans l’historique déjà stocké ?' },
+    { tag: 'Validation', title: 'Où contrôle-t-on ?', body: 'À quel point de la chaîne les codes sont-ils vérifiés avant ingestion ?' },
+    { tag: 'Traçabilité', title: 'Pourquoi ce mapping ?', body: 'Peut-on expliquer, deux ans après, pourquoi cette correspondance a été choisie ?' },
+    { tag: 'Tests', title: 'Est-ce testable ?', body: 'Les règles sémantiques peuvent-elles être vérifiées automatiquement en intégration continue ?' },
+  ]}
+  caption="La terminologie n’est pas une tâche de mapping ponctuelle : c’est un actif maintenu."
+/>
+
+## Activité — rendre la donnée calculable
+
+Vous recevez `K = 4.2`. Que faut-il ajouter avant que cela puisse alimenter Argus ou une aide à la
+décision clinique en toute sécurité ?
+
+<Checklist
+  id="semantic-completeness"
+  title="Checklist de complétude sémantique"
+  intro="Cochez au fur et à mesure. Tant qu’il reste une case vide, la donnée n’est pas sûre pour une décision."
+  items={[
+    'Choisir le code du concept clinique (ex. LOINC 2823-3)',
+    'Préciser le système de codes et sa version',
+    'Préciser l’unité avec UCUM (mmol/L)',
+    'Préciser le prélèvement et le contexte',
+    'Lier l’élément à un ValueSet',
+    'Valider via un serveur de terminologie ($validate-code)',
+    'Mapper le code local si nécessaire (ConceptMap)',
+    'Documenter les hypothèses et la gouvernance',
+  ]}
+/>
+
+## Activité — quelle opération appeler ?
+
+<MatchActivity
+  id="termserver-ops"
+  title="Le bon appel pour la bonne question"
+  instruction="Pour chaque besoin, choisissez l’opération de serveur de terminologie adaptée."
+  options={[
+    { id: 'expand', label: '$expand' },
+    { id: 'lookup', label: '$lookup' },
+    { id: 'validate', label: '$validate-code' },
+    { id: 'translate', label: '$translate' },
+    { id: 'subsumes', label: '$subsumes' },
+  ]}
+  items={[
+    {
+      text: 'Remplir la liste déroulante « motif d’admission » dans l’interface utilisateur.',
+      answer: 'expand',
+      note: 'On demande l’ensemble des codes autorisés par le ValueSet.',
+    },
+    {
+      text: 'Afficher le libellé officiel et les propriétés d’un code reçu.',
+      answer: 'lookup',
+      note: 'Inspection d’un code isolé, sans notion de contexte autorisé.',
+    },
+    {
+      text: 'Refuser à l’ingestion un statut de lit qui n’appartient pas au référentiel commun.',
+      answer: 'validate',
+      note: 'Contrôle d’appartenance à un contexte : le point de passage avant stockage.',
+    },
+    {
+      text: 'Convertir le code local « LIBRE » du silo GMAO vers le code commun d’Argus.',
+      answer: 'translate',
+      note: 'Passage d’un système à l’autre, via un ConceptMap.',
+    },
+    {
+      text: 'Vérifier que « diabète de type 2 » est bien une spécialisation de « diabète ».',
+      answer: 'subsumes',
+      note: 'Test de relation hiérarchique : plus large, plus étroit, équivalent.',
+    },
+  ]}
+/>
+
+## Mini-QCM
+
+<Quiz
+  id="m4-quiz"
+  title="Trois vérifications sur le vocabulaire sémantique"
+  questions={[
+    {
+      q: 'Un CodeSystem définit l’ensemble des concepts et des codes d’un système.',
+      options: ['Vrai', 'Faux'],
+      answer: 0,
+      explain:
+        'Exact. Le ValueSet, lui, sélectionne les codes autorisés pour un contexte donné. Les deux ressources ne jouent pas le même rôle.',
+    },
+    {
+      q: 'Un libellé d’affichage suffit à garantir la signification.',
+      options: ['Vrai', 'Faux'],
+      answer: 1,
+      explain:
+        'La source de vérité est la combinaison système + code + contexte et version. Le libellé est une commodité d’affichage, pas une garantie.',
+    },
+    {
+      q: 'À quoi sert $validate-code ?',
+      options: [
+        'À lister tous les codes d’un CodeSystem.',
+        'À vérifier qu’un code est autorisé dans un contexte donné.',
+        'À traduire un code vers un autre système.',
+        'À tester une relation hiérarchique.',
+      ],
+      answer: 1,
+      explain:
+        'C’est l’opération clé avant de stocker ou d’ingérer une donnée codée : elle empêche un code non autorisé d’entrer dans le socle.',
+    },
+    {
+      q: 'Un mapping déclaré « equivalent » alors que la source est plus fine…',
+      options: [
+        'est acceptable, la donnée passe quand même.',
+        'provoque une perte d’information silencieuse.',
+        'est refusé automatiquement par le serveur de terminologie.',
+        'n’a d’effet que sur l’affichage.',
+      ],
+      answer: 1,
+      explain:
+        'Rien ne bloque techniquement, et c’est précisément le danger : la granularité disparaît sans qu’aucune alerte ne soit levée.',
+    },
+  ]}
+/>
+
+## À retenir
+
+L’interopérabilité sémantique rend la donnée de santé **calculable, comparable et réutilisable sans
+danger**.
+
+- Les terminologies réduisent l’ambiguïté en attribuant des identifiants stables aux concepts.
+- FHIR relie structure et sens via CodeSystem, ValueSet, ConceptMap et bindings.
+- Les serveurs de terminologie transforment le sens en service : étendre, inspecter, valider,
+  traduire, classer.
+- Les modèles logiques protègent le sens métier avant l’implémentation technique.
+
+Étape suivante : situer les standards et les organisations dans l’écosystème complet.

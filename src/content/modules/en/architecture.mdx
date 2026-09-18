@@ -1,0 +1,330 @@
+---
+route: architecture
+lang: en
+order: 8
+phase: 4
+level: advanced
+title: Interoperability architecture
+subtitle: Designing systems that exchange, understand, trace and secure.
+outcome: >-
+  Identify the core services of an interoperability architecture — identity, terminology,
+  authorisation, audit, validation, transformation — and sketch a target architecture.
+duration: 60
+question: Is a FHIR API enough to make an architecture interoperable?
+agenda:
+  - The spaghetti anti-pattern
+  - The layers of an interoperability architecture
+  - The core services
+  - Traceability, rights and validation
+  - Argus target architecture
+argus: >-
+  Draw the Argus target architecture: sources, core services, control points, uses. Then answer five
+  questions — including "where does the terminology server sit?"
+sources:
+  - MCLB 8 — Architecture and interoperability (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import Checklist from '../../../components/Checklist.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## The anti-pattern: the spaghetti information system
+
+EHR, laboratory, imaging, scheduling, HR, billing, beds, equipment, theatre, management. Between each
+of them, a bespoke interface. Every link carries its own logic, its own mapping, its own security and
+recovery rules.
+
+The consequences are always the same: technical debt, inconsistent data, difficult traceability,
+fragmented security, every project starting over, and almost no reuse.
+
+<Callout variant="key">
+The problem is not "getting a message through". It is designing an architecture that can **last**.
+</Callout>
+
+## The layers of an interoperability architecture
+
+<StepFlow
+  caption="Core services must not be reinvented by every application: they carry the shared rules — meaning, rights, traces, quality."
+  steps={[
+    { title: 'Uses', body: 'Business applications, mobility, AI, management, research.' },
+    { title: 'Application services', body: 'APIs, events, orchestration, queries, documents.' },
+    { title: 'Interoperability services', body: 'FHIR server, terminology server, transformation, validation.' },
+    { title: 'Governance & security', body: 'IAM, consent, rights, audit, provenance, quality.' },
+    { title: 'Data sources', body: 'EHR, laboratory, imaging, HR, scheduling, equipment, structure.' },
+  ]}
+/>
+
+## The six core services
+
+They turn a collection of exchanges into reusable infrastructure.
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Identity / MPI', title: 'Who is this?', body: 'Who is the patient? Who is the professional? Matching, identification domains, identity quality.' },
+    { tag: 'Terminology', title: 'What does this code mean?', body: 'Is it valid in this context? Which version is authoritative? Which translation applies?' },
+    { tag: 'Authorisation', title: 'Who is allowed?', body: 'Who can see what, for which purpose, under which conditions?' },
+    { tag: 'Audit / provenance', title: 'Where does the data come from?', body: 'Who produced it, transformed it, consulted it, and when?' },
+    { tag: 'Validation', title: 'Is it conformant?', body: 'Does the instance meet the expected profile, before it enters the foundation?' },
+    { tag: 'Transformation', title: 'How do we leave legacy?', body: 'Which conversion rules towards the target model, and which losses are accepted?' },
+  ]}
+/>
+
+### The terminology server: the backbone of meaning
+
+Without a terminology service, semantics stays **hard-coded inside applications** — duplicated,
+divergent and impossible to fix globally. The five operations from module 4 (`$expand`, `$lookup`,
+`$validate-code`, `$translate`, `$subsumes`) become an architectural component here.
+
+<Callout variant="key">
+Architectural rule: applications **consume** meaning, they do not reinvent it.
+</Callout>
+
+### Reference registries: the foundations everyone forgets
+
+Patient, professionals, organisation, place, equipment, appointments. If the registries are unstable,
+the architecture is unstable — regardless of how good the FHIR server on top is.
+
+<Callout variant="reflect">
+In your context, which of those six registries is least governed? That one sets the ceiling for every
+interoperability project to come.
+</Callout>
+
+## Traceability: making data explainable
+
+Interoperable data must be understandable in its **context of production and transformation**.
+
+**Source system → transformation → FHIR resource → use.** At every step, six elements must remain
+attachable: source of truth, date and version, producing author or system, applied transformation
+rule, consent and legal basis, access and consultations.
+
+<Callout variant="key">
+Traceability = trust + auditability + **the ability to correct**. The third term is the one people
+forget.
+</Callout>
+
+## Rights management: interoperability must stay controlled
+
+The more data circulates, the more rights must be explicit, centralised and auditable. The typical
+path: *identity provider (IAM / SSO) → API gateway (policy enforcement) → FHIR and data services →
+applications and users.*
+
+<CardGrid
+  columns={4}
+  cards={[
+    { tag: 'Authentication', title: 'Who is calling?', body: 'Which user or which system originated the request?' },
+    { tag: 'Authorisation', title: 'Which rights?', body: 'Which resources, which scopes, which conditions?' },
+    { tag: 'Purpose of use', title: 'What for?', body: 'Care, administration, research, management: the purpose changes the rights.' },
+    { tag: 'Audit', title: 'Who saw what?', body: 'When, in which context, and who may read those traces?' },
+  ]}
+  caption="Managing rights application by application produces inconsistency, impossible audit and compliance risk."
+/>
+
+## Validation and quality: making interoperability verifiable
+
+A mature architecture does not only transport: it **checks conformance** of the data.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Structural',
+      title: 'The shape',
+      tone: 'orange',
+      points: ['Cardinalities and types', 'Mandatory elements', 'Allowed extensions'],
+    },
+    {
+      label: 'Semantic',
+      title: 'The meaning',
+      tone: 'purple',
+      points: ['Bindings and permitted codes', 'Unit consistency', 'Code-system consistency'],
+    },
+    {
+      label: 'Business',
+      title: 'The use',
+      tone: 'yellow',
+      points: ['Usage rules', 'Temporal consistency', 'Status and provenance'],
+    },
+  ]}
+  caption="And in all cases: error messages usable for correcting, not merely for rejecting."
+/>
+
+## Architecture governance: who decides what?
+
+| Role | Responsibility |
+| --- | --- |
+| **Data owner** | Defines business meaning, expected quality, usage rules. |
+| **Product / application owner** | Exposes or consumes APIs under the exchange contract. |
+| **Interop team** | Maintains profiles, mappings, validators and internal standards. |
+| **Security / DPO** | Defines access, consent, audit and compliance. |
+| **Operations** | Monitors flows, errors, performance and incidents. |
+
+<Callout variant="warning">
+A good architecture model above all stops **every project inventing its own rules**. That, not the
+choice of server, is where durability is decided.
+</Callout>
+
+## Argus target architecture
+
+The sources — EHR, scheduling, HR, maintenance, bed management, laboratory — flow through connectors
+and mappings into an **interoperability platform** exposing FHIR APIs, terminology, IAM, audit and
+validation. The uses — management, alerting, research — then plug into **normalised data**.
+
+<Callout variant="key">
+Principle: uses plug into **governed services**, not directly into each silo.
+</Callout>
+
+<Reveal question="How do you feed a unified picture without recreating a monolith?">
+By separating three things projects routinely merge:
+
+1. **Capture** — connectors and mappings, specific by nature and accepted as such.
+2. **Foundation** — stabilised business objects, governed, versioned, exposed through shared services.
+3. **Use** — applications that consume the foundation without the right to rewrite its rules.
+
+The monolith reappears the moment a use case imposes its needs directly on a connector.
+</Reveal>
+
+## Exercise — design the Argus architecture
+
+Goal: supervise appointments, patient flows, resource availability, structures and equipment.
+Sources: EHR, scheduling, directory, structure registry, maintenance system, bed tools, sensors.
+Constraints: access rights, traceability, quality, synchronisation, service continuity. Deliverable:
+a diagram plus five argued architectural choices.
+
+<Checklist
+  id="argus-architecture"
+  title="The five questions to settle"
+  intro="Tick when you have a written answer — not an intuition."
+  items={[
+    'Which data domains must be stabilised first?',
+    'Where does the terminology server sit, and who feeds it?',
+    'How do you prove the origin of a value shown on screen?',
+    'How are rights managed per role and per purpose?',
+    'Which data must be real-time, which can be deferred?',
+    'Where are the validation points before ingestion?',
+    'What is the expected behaviour in degraded mode?',
+    'Who is accountable for correcting a wrong value?',
+  ]}
+/>
+
+## Activity — which core service is missing?
+
+<MatchActivity
+  id="core-services"
+  title="Diagnose by the missing service"
+  instruction="For each incident, name the failing or absent core service."
+  options={[
+    { id: 'identity', label: 'Identity / MPI' },
+    { id: 'terminology', label: 'Terminology' },
+    { id: 'authz', label: 'Authorisation' },
+    { id: 'audit', label: 'Audit / provenance' },
+    { id: 'validation', label: 'Validation' },
+    { id: 'transform', label: 'Transformation' },
+  ]}
+  items={[
+    {
+      text: 'Three applications interpret the same bed-status code differently.',
+      answer: 'terminology',
+      note: 'Meaning was hard-coded in each application instead of consumed as a service.',
+    },
+    {
+      text: 'A non-conformant instance entered the foundation and broke a dashboard.',
+      answer: 'validation',
+      note: 'No control point before ingestion.',
+    },
+    {
+      text: 'A researcher accessed care data; nobody can say under which purpose.',
+      answer: 'authz',
+      note: 'Purpose of use not modelled: rights depend on identity alone.',
+    },
+    {
+      text: 'A displayed value is disputed and nobody can say which system it came from.',
+      answer: 'audit',
+      note: 'No provenance attached to the data along the chain.',
+    },
+    {
+      text: 'The same patient appears under two numbers in two control-tower views.',
+      answer: 'identity',
+      note: 'Identity matching absent or ungoverned across domains.',
+    },
+    {
+      text: 'Converting from legacy to the target model systematically loses the admission reason.',
+      answer: 'transform',
+      note: 'Incomplete transformation rule, with undocumented loss.',
+    },
+  ]}
+/>
+
+## Mini quiz
+
+<Quiz
+  id="m8-quiz"
+  title="Four architecture questions"
+  questions={[
+    {
+      q: 'Is a FHIR API enough to guarantee an interoperable architecture?',
+      options: [
+        'Yes, if it exposes all the required resources.',
+        'No: governance, validation, semantics, rights and traces are also needed.',
+        'Yes, provided you use the latest FHIR version.',
+        'No, you also need a data warehouse.',
+      ],
+      answer: 1,
+      explain:
+        'The API is a façade. Without governed core services, you have simply moved the spaghetti behind JSON.',
+    },
+    {
+      q: 'Why centralise terminology?',
+      options: [
+        'To reduce call latency.',
+        'To stop each application interpreting codes differently.',
+        'Because FHIR requires it.',
+        'To reduce stored volume.',
+      ],
+      answer: 1,
+      explain:
+        'Duplicated meaning always diverges. Centralising makes correction and versioning possible at scale.',
+    },
+    {
+      q: 'What is provenance for?',
+      options: [
+        'Speeding up queries.',
+        'Explaining the origin, transformation and ownership of the data.',
+        'Replacing application logs.',
+        'Encrypting exchanges.',
+      ],
+      answer: 1,
+      explain:
+        'Without provenance, disputed data can be neither explained nor corrected — and trust evaporates.',
+    },
+    {
+      q: 'What is the risk if rights are managed application by application?',
+      options: [
+        'Higher licence costs.',
+        'Inconsistency, difficult audit, security and compliance risk.',
+        'Only degraded performance.',
+        'No risk as long as each application is correct.',
+      ],
+      answer: 1,
+      explain:
+        'Each application invents its own rules; nothing stays comparable or globally auditable, and compliance becomes undemonstrable.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+Durable interoperability is an **architectural property**, not just a format one.
+
+- A good system exposes governed services rather than an accumulation of connectors.
+- The core services — identity, terminology, rights, audit, validation, transformation — must be
+  designed from the start.
+- Traceability and rights management are not layers added afterwards.
+- Value appears when data can be combined, understood, secured and **used to act**.
+
+Last module: applying all of this to a real integration project, from the business request to the
+deliverable file.

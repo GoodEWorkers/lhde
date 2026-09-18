@@ -1,0 +1,358 @@
+---
+route: foundations
+lang: en
+order: 1
+phase: 1
+level: intro
+title: Health interoperability & ReEIF
+subtitle: Name the problem before proposing a solution.
+outcome: >-
+  Identify the main dimensions of health interoperability and classify an interoperability problem
+  using the Refined eHealth European Interoperability Framework.
+duration: 45
+question: Why are two systems that "talk to each other" still not interoperable?
+agenda:
+  - Why health interoperability is hard
+  - Operability, narrow interoperability, broad interoperability
+  - The six ReEIF layers
+  - Reading a real problem layer by layer
+  - From use case to implementation
+argus: >-
+  Argus has to aggregate identities, stays, schedules, structures and equipment. Before writing a
+  single line of code, list the six ReEIF layers for just one of those sources: which one is the
+  vaguest in your organisation today?
+sources:
+  - MCLB 1 — Health interoperability & ReEIF (XiA Educathon, Fyrstain)
+  - eHealth Network, Refined eHealth European Interoperability Framework, Brussels, 23 November 2015
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import LayerStack from '../../../components/LayerStack.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## The first-day trap
+
+An interoperability project nearly always starts the same way: two teams meet, agree on a format,
+open a flow, watch the message arrive — and declare success.
+
+Six months later, nobody uses the data. It arrives, it is valid, and it is useless. This module
+exists to spare you that outcome, by giving you the vocabulary to say **where exactly** an exchange
+fails.
+
+## Why health interoperability is hard
+
+Healthcare is not a complicated technical domain. It is a **complex socio-technical** one: data
+there cannot be separated from care processes and from responsibilities.
+
+<CardGrid
+  columns={3}
+  cards={[
+    {
+      tag: 'Actors',
+      title: 'Many players, little hierarchy',
+      body: 'Hospitals, laboratories, pharmacies, patients, insurers, authorities. Each has its own obligations, and none commands the others.',
+    },
+    {
+      tag: 'Meaning',
+      title: 'Many possible meanings',
+      body: 'Clinical terms, local codes, units, versions. A value on its own says nothing: it only exists inside a context.',
+    },
+    {
+      tag: 'Workflows',
+      title: 'Many trajectories',
+      body: 'Care pathways, referrals, reports, alerts. The same data can trigger different actions depending on who receives it.',
+    },
+  ]}
+  caption="In healthcare, data exchange cannot be separated from care processes and responsibilities."
+/>
+
+<Callout variant="key">
+A technically perfect exchange between two systems that do not share a business need produces no
+value. **The hard part is not transport — it is alignment.**
+</Callout>
+
+## Three words that must not be confused
+
+The European framework carefully separates three notions. Mixing them up is the most common source
+of misunderstanding between a clinical directorate and an IT department.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Level 0',
+      title: 'Operability',
+      tone: 'neutral',
+      points: [
+        'The way an organisation runs internally: its processes, its data structures, its rules.',
+        'Every organisation is operable in its own world — which says nothing about anyone else.',
+      ],
+    },
+    {
+      label: 'Level 1',
+      title: 'Narrow interoperability',
+      tone: 'yellow',
+      points: [
+        'ICT systems communicate with each other.',
+        'Protocols and data formats are compatible.',
+        'The focus is mainly technical: network, format, transport.',
+      ],
+    },
+    {
+      label: 'Level 2',
+      title: 'Broad interoperability',
+      tone: 'orange',
+      points: [
+        'Organisations work together towards a shared goal.',
+        'Information is shared, understood and used for the purpose it was shared for.',
+        'People, workflows and governance are aligned.',
+      ],
+    },
+  ]}
+  caption="Healthcare needs broad interoperability. Narrow interoperability is only a prerequisite."
+/>
+
+The definition adopted by the European framework is explicit about this:
+
+> Interoperability is the ability of disparate and diverse organisations to interact towards mutually
+> beneficial and agreed common goals, involving the sharing of information and knowledge between the
+> organisations, through the business processes they support, by means of the exchange of data
+> between their respective ICT systems.
+
+Read it backwards: data exchange comes **last**. It is a means, not the goal.
+
+## The six ReEIF layers
+
+The *Refined eHealth European Interoperability Framework* (ReEIF) was adopted by the eHealth Network
+in November 2015. It takes the generic four-level European framework and splits two of its levels:
+
+- the **organisational** level becomes *Policy / governance* and *Care process*, because those two
+  planes involve different actors and different responsibilities;
+- the **technical** level becomes *Applications* (health-specific technology) and *IT infrastructure*
+  (generic technology), because they obey different classes of standards.
+
+The result: six layers. Open them in whatever order appeals to you — but read all six.
+
+<LayerStack
+  caption="ReEIF is useful because it makes the hidden dimensions of an exchange visible."
+  layers={[
+    {
+      id: 'legal',
+      name: 'Legal and regulatory',
+      question: 'Are we allowed to exchange and process this data?',
+      detail:
+        'Compatible legislation and regulatory guidelines, defining the boundaries of interoperability across borders, but also within a country or a region.',
+      actors: 'Legislators, health authorities, DPO, legal counsel.',
+      failure:
+        'The flow is technically ready but the purpose of processing has no legal basis. The project stops three weeks before go-live.',
+    },
+    {
+      id: 'policy',
+      name: 'Policy / governance',
+      question: 'Who is responsible for what, and why?',
+      detail:
+        'Contracts and agreements between organisations. Purpose and value of the collaboration are set, trust and responsibilities formalised, governance anchored in documents.',
+      actors: 'Executives, data governance, CISO, contracted vendors.',
+      failure:
+        'A data error reaches production and nobody knows who fixes it. Exceptions quietly become the norm.',
+    },
+    {
+      id: 'care',
+      name: 'Care process',
+      question: 'When is the information needed, and what action follows?',
+      detail:
+        'Once organisations agree to work together, care processes are analysed and aligned into integrated pathways and shared workflows. The shared workflow prescribes which information is needed.',
+      actors: 'Doctors, nurses, clinical leads, business owners.',
+      failure: 'The alert arrives, it is correct, and nobody knows who must act or how fast.',
+    },
+    {
+      id: 'information',
+      name: 'Information',
+      question: 'Do we share the same meaning, units and codes?',
+      detail:
+        'Functional description of the data model, the data elements (concepts and possible values) and how they bind to terminologies.',
+      actors: 'Business analysts, terminology experts, modellers.',
+      failure:
+        'The receiver reads "K = 4.2" with no idea which potassium, which specimen or which unit is meant.',
+    },
+    {
+      id: 'applications',
+      name: 'Applications',
+      question: 'Which message, API, profile or document is used?',
+      detail:
+        'Agreements on how health information systems import and export medical information: technical transport specifications, communication standards, then integration into usable applications.',
+      actors: 'Vendors, integrators, the interoperability team.',
+      failure: 'The sender emits XML while the receiver expects JSON — or two incompatible FHIR profiles.',
+    },
+    {
+      id: 'infrastructure',
+      name: 'IT infrastructure',
+      question: 'Can the systems connect safely and reliably?',
+      detail:
+        'Generic communication and network protocols, storage, backup, database engines. Everything that is not health-specific.',
+      actors: 'Operations, network, cybersecurity, hosting provider.',
+      failure: 'The API is unreachable from the hospital network; the certificate expired last night.',
+    },
+  ]}
+/>
+
+<Callout variant="warning">
+A perfectly valid FHIR resource can still miss the interoperability goal if the other layers are
+absent. **Capability at one layer does not prove full interoperability.**
+</Callout>
+
+## Worked example — publishing a document to a national record
+
+Take a mundane act: an organisation publishes a discharge report into the patient's shared record.
+Walk down the six layers, question by question.
+
+<Reveal question="The national service is reachable securely. Which layers does that prove?">
+Only **infrastructure**, and partly **applications**: you know the pipe exists and that the system
+can package a document. You know nothing about the meaning of its content, its clinical use, or who
+is accountable for corrections.
+</Reveal>
+
+<Reveal question="The document arrives and displays correctly. Is the project finished?">
+No. Three questions remain open:
+
+- **Information** — does the receiver understand every coded element, or is it reading local codes
+  that mean nothing on its side?
+- **Care process** — who uses this document, at what point in the pathway, to decide what?
+- **Policy and legal** — who is accountable for publication, correction and use? Is the exchange
+  lawful *in this precise context*?
+</Reveal>
+
+## Activity — classify the layer
+
+For each situation, identify the **primary** ReEIF layer. Several also have a secondary layer: note
+it mentally before revealing the answers.
+
+<MatchActivity
+  id="reeif-sort"
+  title="Where does the problem sit?"
+  instruction="Choose the primary ReEIF layer for each of the six situations."
+  options={[
+    { id: 'legal', label: 'Legal' },
+    { id: 'policy', label: 'Governance' },
+    { id: 'care', label: 'Care process' },
+    { id: 'information', label: 'Information' },
+    { id: 'applications', label: 'Applications' },
+    { id: 'infrastructure', label: 'Infrastructure' },
+  ]}
+  items={[
+    {
+      text: 'The receiver cannot interpret a local laboratory code.',
+      answer: 'information',
+      note: 'Transport works; it is the meaning that is missing.',
+    },
+    {
+      text: 'The API is unreachable from the hospital network.',
+      answer: 'infrastructure',
+      note: 'Nothing health-specific here: network, firewall, certificate.',
+    },
+    {
+      text: 'Nobody knows who must act once the alert is received.',
+      answer: 'care',
+      note: 'Care process, with a governance edge: the shared workflow does not exist.',
+    },
+    {
+      text: 'The sender uses XML while the receiver expects JSON.',
+      answer: 'applications',
+      note: 'A choice of exchange mechanism — not of meaning nor of law.',
+    },
+    {
+      text: 'The consent policy is ambiguous for this secondary use of the data.',
+      answer: 'legal',
+      note: 'Legal first, governance next to decide and document it.',
+    },
+    {
+      text: 'The two care teams validate the result at different moments.',
+      answer: 'care',
+      note: 'Two unaligned workflows: the message lands at the wrong point in the pathway.',
+    },
+  ]}
+/>
+
+## From use case to implementation
+
+ReEIF is not only a diagnostic grid. It is also a work order. The constant temptation is to start
+from the technical specification; the effective order is the opposite.
+
+<StepFlow
+  caption="The specification is not the starting point. The care outcome is."
+  steps={[
+    {
+      title: 'Expected care outcome',
+      body: 'What must patients and professionals achieve? Which decision becomes possible?',
+    },
+    {
+      title: 'Information content',
+      body: 'Which data, concepts, codes and units are required?',
+    },
+    {
+      title: 'Application exchange',
+      body: 'Which document, message, API, profile or transaction carries that content?',
+    },
+    {
+      title: 'Technical path',
+      body: 'How does the information travel safely and reliably?',
+    },
+    {
+      title: 'Verification',
+      body: 'Which agreements, responsibilities and regulatory constraints apply?',
+    },
+  ]}
+/>
+
+<Callout variant="reflect">
+Think of a flow you know. Without opening any documentation: could you name **one** decision taken
+at each of the six layers? The one you cannot find is probably the one that will hurt.
+</Callout>
+
+## Exit quiz
+
+<Quiz
+  id="m1-quiz"
+  title="Three questions to check the mental model"
+  questions={[
+    {
+      q: 'Two systems exchange valid JSON over HTTPS. Which ReEIF layers are certainly covered?',
+      options: [
+        'All six: the exchange works.',
+        'At most part of the Applications and Infrastructure layers.',
+        'The Information and Applications layers.',
+        'None: JSON is not a health standard.',
+      ],
+      answer: 1,
+      explain:
+        'Encrypted transport and a parsable format prove the technical path exists and an exchange mechanism was chosen. They say nothing about meaning, workflow, responsibility or law.',
+    },
+    {
+      q: 'The receiver understands the data perfectly, but no shared workflow exists. Which layer is missing?',
+      options: ['Information', 'Applications', 'Care process', 'Infrastructure'],
+      answer: 2,
+      explain:
+        'The Care process layer aligns pathways and prescribes which information is needed, when, and for which action.',
+    },
+    {
+      q: 'Where do terminologies, units and ValueSets mainly sit?',
+      options: ['Applications', 'Information', 'Governance', 'Infrastructure'],
+      answer: 1,
+      explain:
+        'The Information layer carries the data model, the data elements and their binding to terminologies. The profile that constrains them lives on the Applications layer.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+Health interoperability is multidimensional. Technical exchange is **necessary but not sufficient**.
+ReEIF solves nothing on its own: it gives you a map of the rest of the problem, and a shared language
+for discussing it with people whose job is not yours.
+
+The next module answers the question that follows immediately: why *standardise*, rather than simply
+*connect*?

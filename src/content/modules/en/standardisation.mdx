@@ -1,0 +1,300 @@
+---
+route: standardisation
+lang: en
+order: 2
+phase: 1
+level: intro
+title: Why standardise?
+subtitle: From disposable connector to reusable foundation.
+outcome: >-
+  Explain why standardisation is required to turn heterogeneous flows into a foundation usable for
+  care, management and automation.
+duration: 45
+question: Is connecting two systems already standardising?
+agenda:
+  - Why silos block transformation
+  - Uniformity, connectors, interoperability
+  - Data as operational infrastructure
+  - Case study — Saint Joseph Hospital and the birth of Argus
+  - Diagnosing a silo
+argus: >-
+  Argus is born here. Pick three business objects to standardise first in order to make the hospital
+  observable — and justify why those three before the others.
+sources:
+  - MCLB 2 — Why standardise? (XiA Educathon, Fyrstain)
+  - Seminar “Standardise to transform”, French Military Health Service, 12 December 2025
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## The problem: vital data, scattered everywhere
+
+In a hospital, value is never inside one isolated application. It appears the moment data can be
+**linked**:
+
+- clinical data, for care;
+- administrative data, for organisation;
+- logistics data, for operations;
+- secondary data, for research and management.
+
+To standardise is to make that data reusable **without rebuilding a bespoke interface for every new
+use**. That is the only difference that matters.
+
+## Three things that get confused constantly
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Trap #1',
+      title: 'Uniformity',
+      tone: 'yellow',
+      points: [
+        'Deploy the same software across many sites.',
+        'It does reduce some practice variation…',
+        '…but guarantees neither a common language nor cross-cutting reuse. Same tool, data still siloed.',
+      ],
+    },
+    {
+      label: 'Trap #2',
+      title: 'Bespoke connectors',
+      tone: 'purple',
+      points: [
+        'Every integration becomes a local translation.',
+        'Fragile, expensive, rarely reusable.',
+        'The knowledge stays in the head of whoever wrote the mapping.',
+      ],
+    },
+    {
+      label: 'Goal',
+      title: 'Interoperability',
+      tone: 'orange',
+      points: [
+        'Participants share a model and a vocabulary.',
+        'The rules are explicit and testable.',
+        'A usage contract states who produces, who corrects, and what for.',
+      ],
+    },
+  ]}
+  caption="A standard is not only about exchanging: it stabilises what you want to make computable, reusable and governable."
+/>
+
+<Callout variant="warning">
+Hospitals long chose **homogenisation** over standardisation: local simplification instead of global
+openness. The result: uniform deployments, a proliferation of bespoke connectors, and still no
+interoperability.
+</Callout>
+
+## Without standards, software grows and silos remain
+
+Watch the cycle. It replays identically in every organisation.
+
+<StepFlow
+  caption="Every digital use case forces you to rediscover, clean and reconcile the same business objects."
+  steps={[
+    { title: 'New need', body: 'Monitoring, management, alerting, research: a business need appears.' },
+    { title: 'New application', body: 'A new scope is bolted onto the existing HIS, with its own model.' },
+    { title: 'Bespoke interface', body: 'Local mapping, implicit rules, dedicated maintenance.' },
+    { title: 'New silo', body: 'The data stays hard to reuse for the next use case.' },
+    { title: 'Back to step 1', body: 'The following need starts from zero. The IS turns into spaghetti.' },
+  ]}
+/>
+
+Vendors respond rationally: lacking modular interoperability, they widen their functional footprint.
+Software becomes sprawling monoliths, hard to evolve, and each new module demands its own interfaces.
+The organisation loses the ability to adopt innovative solutions.
+
+<Callout variant="key">
+Standardising = turning a **one-off integration** into **reusable infrastructure**.
+</Callout>
+
+## Automation does not exist without reliable data
+
+Automating means turning data into actions: alarms, reminders, monitoring, equipment
+synchronisation. A reliable automatic action therefore requires three properties at once.
+
+<CardGrid
+  columns={3}
+  cards={[
+    {
+      tag: '1',
+      title: 'Structured data',
+      body: 'An explicit model, cardinalities, types, identifiers. You know what you are reading and where to read it.',
+    },
+    {
+      tag: '2',
+      title: 'Semantic data',
+      body: 'Shared codes, units, reference sets and meanings. You know what the value means.',
+    },
+    {
+      tag: '3',
+      title: 'Governed data',
+      body: 'Known provenance, ownership, lifecycle and quality. You know who to call when it is wrong.',
+    },
+  ]}
+  caption="Wrong data produces a wrong action: patient risk, operational risk."
+/>
+
+<Callout variant="reflect">
+Take an automation you know — a reminder, an alert, an indicator. Which of the three properties is
+weakest in your context today? That is the one that will break first.
+</Callout>
+
+## Case study — Saint Joseph Hospital, and the birth of Argus
+
+A mid-sized hospital: visible scope, real complexity. The essential flows are known — identity,
+stays, schedules, staff, structures, equipment. The business need is clear: supervision,
+traceability, understanding of flows.
+
+The teaching goal of the case is to see how the **progressive destruction of silos** lets an
+observation and steering platform emerge: **Argus**, a hospital control tower.
+
+### Which objects must be standardised to steer a hospital?
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Patient identity', title: 'Who is this person?', body: 'Which identities, which matches, which links between identification domains?' },
+    { tag: 'Stays', title: 'Where is the patient?', body: 'In which care context, since when, with which status?' },
+    { tag: 'Schedule', title: 'When is a resource used?', body: 'Slots, cancellations, delays, actual attendance.' },
+    { tag: 'Staff', title: 'Who acts?', body: 'Which role, which identifier, which home organisation?' },
+    { tag: 'Structures', title: 'Where does activity happen?', body: 'Service, unit, place, organisation. The reference set without which nothing aggregates.' },
+    { tag: 'Equipment', title: 'Which resource supports the activity?', body: 'Devices, equipment, availability, maintenance.' },
+  ]}
+  caption="Each domain is useful alone. Linked and standardised, they become an observable system."
+/>
+
+### From heterogeneous flows to an off-board platform
+
+The EHR and administrative systems supply identities and stays; the scheduling system supplies
+appointments, resources and availability; HR supplies staff, roles and assignments; reference
+registries supply structures, places and equipment. Everything converges into an **off-board FHIR
+platform**, then into Argus — a supervision layer built on standardised, traceable, reusable data.
+
+<Callout variant="warning">
+Technical conversion is not enough. You must stabilise the **business objects**, their
+**provenance** and their **lifecycle**. Converting HL7 v2 to FHIR without that produces unreadable
+JSON instead of unreadable pipes.
+</Callout>
+
+### What Argus makes possible
+
+<StepFlow
+  caption="A control tower is not a dashboard: it is a use case made possible by a standardised foundation."
+  steps={[
+    { title: 'Observe', body: 'Follow the state of the hospital system in near real time.' },
+    { title: 'Trace', body: 'Understand the origin, transformation and quality of the data.' },
+    { title: 'Decide', body: 'Prioritise, anticipate pressure points, coordinate teams.' },
+    { title: 'Automate', body: 'Trigger reliable rules from reliable data.' },
+    { title: 'Reuse', body: 'Plug research, AI and management onto the same base, with no new project.' },
+  ]}
+/>
+
+<Reveal question="At what point have you genuinely standardised, rather than merely connected?">
+When a **second** use case can consume the same business object without anyone writing a new
+interface. As long as each new need reopens a mapping project, you have connected — you have not
+standardised.
+</Reveal>
+
+## Activity — diagnose a silo
+
+Pick a hospital flow you know and fill in the five boxes. The deliverable is one sentence: *"To
+standardise X, we must stabilise Y, identify Z, and define usage rule W."*
+
+<MatchActivity
+  id="silo-diagnosis"
+  title="Which dimension is missing?"
+  instruction="For each symptom observed on a flow, name the standardisation dimension that is missing."
+  options={[
+    { id: 'object', label: 'Business object' },
+    { id: 'identifier', label: 'Identifier' },
+    { id: 'semantics', label: 'Semantics' },
+    { id: 'governance', label: 'Governance' },
+    { id: 'usage', label: 'Target use' },
+  ]}
+  items={[
+    {
+      text: 'The same patient appears three times on the dashboard, under three different numbers.',
+      answer: 'identifier',
+      note: 'Nothing lets you recognise the same object across two systems.',
+    },
+    {
+      text: 'Two departments call "discharge" two different events in the pathway.',
+      answer: 'object',
+      note: 'The business object is not defined the same way on both sides.',
+    },
+    {
+      text: 'The "status" field sometimes holds a local code, sometimes free text.',
+      answer: 'semantics',
+      note: 'No reference set or ValueSet constrains the possible values.',
+    },
+    {
+      text: 'A value has been wrong for six months and nobody knows who may correct it.',
+      answer: 'governance',
+      note: 'No owner, no lifecycle, no correction path.',
+    },
+    {
+      text: 'The flow is clean, documented, running — and no decision relies on it.',
+      answer: 'usage',
+      note: 'Standardised without defining the action it was meant to enable.',
+    },
+  ]}
+/>
+
+## Exit quiz
+
+<Quiz
+  id="m2-quiz"
+  title="Three questions to separate connecting from standardising"
+  questions={[
+    {
+      q: 'Does a bespoke connector between two applications count as standardisation?',
+      options: [
+        'Yes, as soon as the two systems exchange correctly.',
+        'No: it connects two systems without creating a reusable foundation.',
+        'Yes, provided the connector is documented.',
+        'No, unless it uses HL7 v2.',
+      ],
+      answer: 1,
+      explain:
+        'A connector solves one link. A standard stabilises a business object that several use cases can consume without a new translation.',
+    },
+    {
+      q: 'Why is a registry of organisational structures critical for a control tower?',
+      options: [
+        'Because it reduces the volume of transmitted data.',
+        'Because it lets you locate, aggregate and interpret activity inside the real organisation.',
+        'Because European regulation requires it.',
+        'Because it replaces the identity registry.',
+      ],
+      answer: 1,
+      explain:
+        'Without stable structures no aggregation means anything: you cannot tell which unit, which service or which site you are looking at.',
+    },
+    {
+      q: 'What separates "available data" from "operational data"?',
+      options: [
+        'Operational data is more recent.',
+        'Operational data is stored in a dedicated warehouse.',
+        'Operational data is understood, reliable, governed and usable for an action.',
+        'There is no practical difference.',
+      ],
+      answer: 2,
+      explain:
+        'Available describes access. Operational describes the ability to act: shared meaning, known quality, identified ownership.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+We do not standardise to be tidy. We standardise to make the hospital **observable**, **governable**
+and **automatable**.
+
+Next step: the first technical half of the problem — how information travels, and why the shape of
+an exchange is an architectural choice before it is a developer preference.

@@ -1,0 +1,312 @@
+---
+route: syntax
+lang: fr
+order: 3
+phase: 2
+level: core
+title: Interopérabilité syntaxique
+subtitle: Messages, documents, APIs, événements et fichiers.
+outcome: >-
+  Distinguer transport, interaction, structure et sens, puis choisir un pattern d’échange à partir de
+  contraintes cliniques et organisationnelles.
+duration: 55
+question: Message, document, API, événement ou fichier — comment choisir ?
+agenda:
+  - Syntaxe, transport, interaction, sémantique
+  - Les cinq patterns d’échange
+  - Les formats ne sont pas des patterns
+  - Six questions pour choisir
+  - Argus, un cas multi-pattern
+argus: >-
+  Argus a besoin de données quasi temps réel issues de plusieurs silos. Le « bon » pattern n’est pas
+  unique : attribuez un pattern à chaque source et défendez chaque choix devant le groupe.
+sources:
+  - MCLB 3 — Focus sur l’interopérabilité syntaxique (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+
+## Quatre questions qu’on empile sans le savoir
+
+Avant de demander ce qu’un message *veut dire*, demandez comment il *voyage* et comment il est
+*structuré*. Ces quatre colonnes sont indépendantes, et les confondre coûte cher.
+
+<CardGrid
+  columns={4}
+  cards={[
+    {
+      tag: 'Transport',
+      title: 'Les systèmes peuvent-ils s’atteindre ?',
+      body: 'HTTP, MLLP, SFTP, bus de messages. Chiffrement, authentification, disponibilité.',
+    },
+    {
+      tag: 'Interaction',
+      title: 'Qui initie l’échange ?',
+      body: 'Push, pull, événement, requête, abonnement. Qui décide du moment où la donnée bouge.',
+    },
+    {
+      tag: 'Structure',
+      title: 'À quoi ressemble la charge utile ?',
+      body: 'HL7 v2, CDA, FHIR JSON/XML, DICOM. La forme, pas le sens.',
+    },
+    {
+      tag: 'Sens',
+      title: 'Que veut dire la donnée ?',
+      body: 'SNOMED CT, LOINC, UCUM, codes locaux. C’est l’objet du module suivant.',
+    },
+  ]}
+  caption="L’interopérabilité syntaxique couvre surtout les trois premières colonnes. La quatrième est un autre métier."
+/>
+
+<Callout variant="key">
+Un échange syntaxiquement valide peut être cliniquement inutile. C’est la phrase à retenir de tout ce
+module.
+</Callout>
+
+## Les cinq patterns d’échange
+
+| Pattern | Principe | Standard typique |
+| --- | --- | --- |
+| **Message push** | Un événement survient, un message part | HL7 v2 ADT / ORU |
+| **Échange documentaire** | Un document stable est publié ou partagé | CDA, PDF, DMP |
+| **API de ressources** | Un client lit, écrit, recherche des ressources | FHIR REST |
+| **Événement / abonnement** | Les systèmes réagissent aux changements | FHIR Subscription, broker |
+| **Batch / fichier / ETL** | Les données sont exportées puis traitées plus tard | CSV, fichiers plats, bulk export |
+
+Le choix dépend autant du métier que de la technique. Prenons-les un par un.
+
+### 1 — Message push
+
+Un système émet un message quand un événement métier survient : admission, résultat de biologie,
+création de rendez-vous. Le chemin classique est *source → moteur d’intégration → applications
+aval*.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Utile quand',
+      title: 'Un événement doit notifier vite',
+      tone: 'orange',
+      points: ['Mise à jour d’identité', 'Résultat de laboratoire disponible', 'Création ou modification de rendez-vous'],
+    },
+    {
+      label: 'Limites',
+      title: 'Couplage et fiabilité',
+      tone: 'yellow',
+      points: [
+        'Couplage fort entre émetteur et récepteur',
+        'Rejeux, ordre des messages, doublons',
+        'Contexte partiel : le récepteur doit compléter lui-même',
+        'Interprétation locale des segments',
+      ],
+    },
+  ]}
+/>
+
+### 2 — Échange documentaire
+
+Un document est un artefact clinique **stable** : il peut être signé, stocké, partagé et audité.
+Compte rendu, résumé patient, ordonnance, lettre de sortie.
+
+Bon pour la trace médico-légale, le partage de dossier, la continuité inter-organisations. Syntaxes
+possibles : PDF, CDA, FHIR Document Bundle, gabarits nationaux.
+
+<Callout variant="warning">
+Un document peut être **lisible sans être calculable**. La bonne question n’est pas « quel format ? »
+mais : l’usage attendu est-il la lecture humaine, le traitement machine, ou les deux ?
+</Callout>
+
+### 3 — API / requête / pull
+
+Le client demande la donnée dont il a besoin, au moment où il en a besoin.
+
+```http
+GET  /Patient?identifier=urn:oid:1.2.250.1.213.1.4.8|123456789
+GET  /Observation?patient=123&code=http://loinc.org|2823-3
+POST /Appointment
+GET  /PractitionerRole?organization=Organization/42
+```
+
+Forces : accès temps réel, recherche, réutilisation modulaire, écosystème applicatif, applications
+mobiles. Limites : gouvernance, autorisation, performance, versionnement, et un contrat d’API
+explicite — sans quoi chaque consommateur réinvente ses hypothèses.
+
+### 4 — Événements et abonnements
+
+Les systèmes modernes réagissent aux changements plutôt que d’interroger en boucle. Admission et
+planification publient ; application mobile et centre de commandement s’abonnent ; un broker
+distribue.
+
+Exemples : rendez-vous modifié, nouveau résultat disponible, statut de lit mis à jour, alerte
+dispositif.
+
+### 5 — Batch, fichiers et ETL
+
+Tout échange n’est pas temps réel. Certains cas tolèrent le délai ou exigent de gros extraits :
+`source.csv`, `patients.json`, `observations.ndjson`, `study.zip`, FHIR Bulk Data.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Bon pour',
+      title: 'Volume et recul',
+      tone: 'orange',
+      points: ['Extractions massives', 'Reporting', 'Migration', 'Cohortes de recherche', 'Historique'],
+    },
+    {
+      label: 'Mauvais pour',
+      title: 'Coordination',
+      tone: 'yellow',
+      points: ['Coordination temps réel', 'Workflows opérationnels', 'Alertes critiques pour la sécurité'],
+    },
+    {
+      label: 'Risque clé',
+      title: 'Deux mondes parallèles',
+      tone: 'purple',
+      points: [
+        'Les données opérationnelles et analytiques divergent.',
+        'Personne ne sait plus laquelle fait foi.',
+        'L’ETL devient l’unique stratégie d’intégration — et le piège se referme.',
+      ],
+    },
+  ]}
+/>
+
+## Les formats ne sont pas des patterns
+
+| Format | Forme typique | Peut servir à |
+| --- | --- | --- |
+| HL7 v2 | texte délimité par pipes | messages |
+| CDA | document XML | documents cliniques |
+| FHIR | JSON / XML / RDF | API, document, message, bulk |
+| DICOM | binaire + métadonnées | imagerie |
+| CSV / NDJSON | plat / ligne à ligne | batch, analytique |
+
+<Callout variant="key">
+Le même format peut soutenir plusieurs patterns. FHIR peut être une API, un document, un message ou
+un export bulk. Dire « on fait du FHIR » ne décrit donc **aucune** architecture.
+</Callout>
+
+## Six questions pour choisir
+
+<Reveal question="Avant de lire la liste : quelles questions poseriez-vous à un métier pour trancher entre API et document ?">
+Les six qui suivent couvrent l’essentiel. Si vous en aviez trouvé trois, vous avez déjà le réflexe
+d’architecte.
+
+1. La donnée est-elle nécessaire **immédiatement** ?
+2. Le récepteur a-t-il besoin du **contexte complet** ou d’une simple notification ?
+3. L’artefact est-il **médico-légal** et stable dans le temps ?
+4. La donnée sera-t-elle réutilisée par **plusieurs** applications ?
+5. L’échange est-il **opérationnel** ou **analytique** ?
+6. Qui possède la **correction**, l’**audit** et la **réconciliation** ?
+</Reveal>
+
+<Callout variant="key">
+La syntaxe est un choix d’architecture, pas une préférence de développeur.
+</Callout>
+
+## Argus, un cas volontairement multi-pattern
+
+Argus a besoin de données quasi temps réel issues de plusieurs silos : identité patient, rendez-vous,
+structure hospitalière, ressources, matériel, événements opérationnels.
+
+Le « bon » pattern n’est pas unique. L’identité et la structure se prêtent à l’API ; les rendez-vous
+aux événements ; l’historique au batch ; les documents restent des documents. La tour de contrôle
+devient possible quand les patterns sont **explicitement choisis et combinés**.
+
+## Activité — choisir le pattern
+
+<MatchActivity
+  id="pattern-choice"
+  title="Quel pattern pour quelle situation ?"
+  instruction="Pour chaque situation, choisissez le pattern d’échange le plus adapté."
+  options={[
+    { id: 'push', label: 'Message push' },
+    { id: 'document', label: 'Document' },
+    { id: 'api', label: 'API / requête' },
+    { id: 'event', label: 'Événement' },
+    { id: 'batch', label: 'Batch / export' },
+  ]}
+  items={[
+    {
+      text: 'Un nouveau rendez-vous est créé et la tour de contrôle doit mettre à jour sa vue de charge.',
+      answer: 'event',
+      note: 'Changement d’état à diffuser à plusieurs consommateurs : abonnement plutôt que point à point.',
+    },
+    {
+      text: 'Une lettre de sortie doit être partagée avec le patient et un autre hôpital.',
+      answer: 'document',
+      note: 'Artefact stable, signable, auditable, lisible par un humain.',
+    },
+    {
+      text: 'Une application mobile a besoin de la liste d’allergies à jour à chaque ouverture.',
+      answer: 'api',
+      note: 'Lecture à la demande, au moment où le client en a besoin.',
+    },
+    {
+      text: 'Une équipe de recherche veut cinq ans d’observations anonymisées.',
+      answer: 'batch',
+      note: 'Gros volume, pas de contrainte temps réel : export ou bulk data.',
+    },
+    {
+      text: 'Le statut de nettoyage d’un lit change et déclenche une replanification opérationnelle.',
+      answer: 'event',
+      note: 'Un changement d’état déclenche une réaction : le broker évite le couplage direct.',
+    },
+    {
+      text: 'Le SIH doit prévenir immédiatement le DPI qu’un patient vient d’être admis.',
+      answer: 'push',
+      note: 'Notification directe et attendue par un récepteur identifié : le message HL7 v2 ADT reste pertinent.',
+    },
+  ]}
+/>
+
+## Mini-QCM
+
+<Quiz
+  id="m3-quiz"
+  title="Vérifier qu’on ne confond plus format et pattern"
+  questions={[
+    {
+      q: 'FHIR signifie toujours « API REST ».',
+      options: ['Vrai', 'Faux'],
+      answer: 1,
+      explain:
+        'FHIR supporte REST, mais aussi les documents, le messaging et le bulk data. Le paradigme se choisit indépendamment du standard.',
+    },
+    {
+      q: 'Un message HL7 v2 valide garantit l’interopérabilité sémantique.',
+      options: ['Vrai', 'Faux'],
+      answer: 1,
+      explain:
+        'Il peut être structurellement valide et transporter des codes locaux ou des significations ambiguës. La validité de forme ne dit rien du sens.',
+    },
+    {
+      q: 'Un document est souvent le bon choix quand la trace médico-légale et un contenu stable lisible par un humain comptent.',
+      options: ['Vrai', 'Faux'],
+      answer: 0,
+      explain:
+        'C’est précisément ce que le pattern documentaire optimise : signature, archivage, partage, audit, lisibilité.',
+    },
+    {
+      q: 'Une architecture devrait choisir un seul pattern d’échange et s’y tenir.',
+      options: ['Vrai', 'Faux'],
+      answer: 1,
+      explain:
+        'Les patterns résolvent des problèmes différents. Une architecture réaliste — comme Argus — les combine explicitement et documente chaque choix.',
+    },
+  ]}
+/>
+
+## À retenir
+
+L’interopérabilité syntaxique consiste à **structurer et déplacer** la donnée.
+
+- Les patterns comptent : push, pull, document, événement et batch ne résolvent pas le même problème.
+- Les formats comptent : HL7 v2, CDA, FHIR, DICOM, CSV/NDJSON portent des hypothèses différentes.
+- Mais la syntaxe ne suffit pas. Le module suivant explique comment le **sens partagé** se fabrique.

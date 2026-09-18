@@ -1,0 +1,313 @@
+---
+route: ecosystem
+lang: fr
+order: 5
+phase: 3
+level: core
+title: Qui standardise quoi ?
+subtitle: Se repérer dans un écosystème qui n’a pas de chef.
+outcome: >-
+  Associer un besoin d’interopérabilité à l’organisme ou à l’artefact de standardisation pertinent, et
+  expliquer comment HL7/FHIR, IHE, DICOM, openEHR, SNOMED CT, LOINC, CDISC et OMOP coexistent.
+duration: 50
+question: Pourquoi autant de standards, et lequel s’applique à mon problème ?
+agenda:
+  - Un standard répond à un type de question
+  - HL7, IHE, DICOM — trois rôles distincts
+  - openEHR, terminologies, CDISC, OMOP
+  - Les couches européenne et française
+  - Choisir les standards d’Argus
+argus: >-
+  Argus doit couvrir identité, rendez-vous, structures, professionnels, lits, matériel, logistique et
+  alertes. Construisez la matrice domaine → standard, et notez partout où vous hésitez.
+sources:
+  - MCLB 5 — Qui standardise quoi ? (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## La bonne question n’est pas « quel standard ? »
+
+Elle est : **quel problème essaie-t-on de standardiser ?** Chaque famille de standards répond à un
+type de question différent. Les traiter comme des concurrents est l’erreur de débutant la plus
+coûteuse.
+
+| Type de question | Organisme / artefact |
+| --- | --- |
+| Qui fait quoi, quand, avec quelle transaction ? | **IHE** |
+| Comment structurer et échanger la donnée ? | **HL7** — FHIR, HL7 v2, CDA |
+| Comment encoder images et données associées ? | **DICOM** |
+| Comment modéliser le contenu clinique durablement ? | **openEHR**, profils FHIR |
+| Que signifie ce code ou cette observation ? | **SNOMED CT, LOINC, UCUM** |
+| Comment analyser des jeux de données d’étude ? | **CDISC, OMOP / OHDSI** |
+| Qu’est-ce qui est exigé localement ? | **ANS, Interop’Santé, HL7 Europe** |
+
+<Callout variant="key">
+Les standards ne sont pas concurrents par défaut : ils résolvent souvent des **couches différentes du
+même système**. Évitez le réflexe « un standard pour les gouverner tous ».
+</Callout>
+
+## HL7 International — structurer et échanger
+
+L’organisme mondial de standardisation pour l’échange électronique d’information de santé. Artefacts
+clés : FHIR, HL7 v2, CDA, CQL, guides d’implémentation, profils, extensions.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Ce que HL7 standardise',
+      title: 'La forme et le transport de l’information',
+      tone: 'orange',
+      points: [
+        'La structure des données de santé',
+        'Les mécanismes d’échange',
+        'La représentation calculable de l’information clinique',
+      ],
+    },
+    {
+      label: 'Ce que HL7 ne résout pas seul',
+      title: 'Le contexte d’usage',
+      tone: 'yellow',
+      points: [
+        'Les workflows locaux',
+        'Les choix de politique nationale',
+        'La gouvernance des terminologies',
+        'Les tests de conformité en conditions réelles',
+      ],
+    },
+  ]}
+  caption="Règle empirique : HL7 vous dit comment structurer et échanger — pas toutes les règles locales d’usage."
+/>
+
+## IHE — rendre les choix testables
+
+IHE n’invente généralement pas de standard de base. Il **profile** des standards existants pour
+l’interopérabilité du monde réel.
+
+<StepFlow
+  caption="IHE rend les choix d’implémentation testables."
+  steps={[
+    { title: 'Cas d’usage', body: 'Un problème clinique ou organisationnel concret.' },
+    { title: 'Acteurs', body: 'Les systèmes qui endossent un rôle : Consumer, Supplier, Registry…' },
+    { title: 'Transactions', body: 'Les échanges précis entre acteurs : requête, réponse, notification.' },
+    { title: 'Profils', body: 'Un usage contraint de HL7, DICOM, W3C, etc.' },
+    { title: 'Connectathon', body: 'Des tests d’implémentation pair à pair, en conditions réelles.' },
+  ]}
+/>
+
+Logique d’usage : « nous avons besoin de partage documentaire / d’accès imagerie / de gestion
+d’identité patient » → cherchez un profil IHE.
+
+| Profil | Besoin | Acteurs | Standards |
+| --- | --- | --- | --- |
+| PDQ / PIX | identité patient | Patient Consumer / Supplier | HL7 v2, services IHE |
+| PAM | admission, venue, mouvement | ADT source / consumer | HL7 v2 ADT |
+| XDS.b | partage documentaire | Registry / Repository / Consumer | CDA, ebXML, SOAP |
+| ATNA / XUA | audit, sécurité, assertion d’identité | Secure node / user / app | TLS, SAML, piste d’audit |
+| SWF / RAD | workflow imagerie | Modalités, RIS, PACS | DICOM, HL7 v2 |
+
+<Callout variant="warning">
+« Legacy » ne veut pas dire obsolète. Ces profils restent au cœur de très nombreux SIH en production
+aujourd’hui.
+</Callout>
+
+## DICOM — l’imagerie et ce qui l’entoure
+
+Le standard de référence pour l’information et la communication en imagerie médicale.
+
+- **Objets** : images, séries, études, comptes rendus, formes d’onde, métadonnées associées.
+- **Services** : stockage, query/retrieve, worklists, impression, comptes rendus structurés, accès web.
+- **Conformance** : les industriels déclarent quels services et options leurs produits supportent.
+
+Trois réflexes : DICOM pour les modalités, PACS et objets image ; FHIR **autour** de DICOM pour
+l’intégration patient, prescription, compte rendu, workflow ; un profil IHE quand il faut un workflow
+imagerie **testé** entre systèmes.
+
+## openEHR — modéliser le contenu clinique
+
+openEHR sépare le modèle de référence technique stable des modèles de contenu clinique.
+
+<CardGrid
+  columns={4}
+  cards={[
+    { tag: 'Reference model', title: 'Le socle stable', body: 'Modèle d’information et spécifications de plateforme, volontairement invariants.' },
+    { tag: 'Archetypes', title: 'Le contenu réutilisable', body: 'Modèles de contenu clinique rédigés et partagés par les communautés cliniques.' },
+    { tag: 'Templates', title: 'La composition d’usage', body: 'Assemblages d’archétypes pour un formulaire, un document ou un jeu de données.' },
+    { tag: 'CDR / AQL', title: 'La persistance et la requête', body: 'Entrepôts de données cliniques et langage de requête pour les dossiers durables.' },
+  ]}
+  caption="openEHR et FHIR coexistent : openEHR vise souvent la persistance et la modélisation clinique, FHIR l’échange et les API."
+/>
+
+<Reveal question="Question d’ingénieur : concevez-vous un entrepôt clinique, une API d’échange, ou un modèle commun aux deux ?">
+La réponse détermine le standard dominant. Un entrepôt longitudinal avec besoin de requêtes cliniques
+fines penche vers openEHR ; une ouverture à un écosystème d’applications penche vers FHIR ; un besoin
+des deux exige un **modèle logique pivot** et des mappings explicites — pas un arbitrage idéologique.
+</Reveal>
+
+## Recherche — CDISC et OMOP ne résolvent pas le même problème
+
+<CompareGrid
+  columns={[
+    {
+      label: 'CDISC',
+      title: 'Essais cliniques et soumissions réglementaires',
+      tone: 'purple',
+      points: [
+        'Artefacts : CDASH, SDTM, ADaM, Define-XML, ODM, terminologie contrôlée.',
+        'Objectif : préparer et échanger des jeux de données d’étude de qualité réglementaire.',
+        'Organisation : CDISC.',
+      ],
+    },
+    {
+      label: 'OMOP CDM',
+      title: 'Données observationnelles et analytique à grande échelle',
+      tone: 'orange',
+      points: [
+        'Artefacts : OMOP Common Data Model, vocabulaires et outils OHDSI.',
+        'Objectif : harmoniser des données de vie réelle issues de bases multiples.',
+        'Communauté : OHDSI.',
+      ],
+    },
+  ]}
+  caption="Pont avec FHIR : FHIR collecte ou expose la donnée clinique source ; CDISC et OMOP sont des modèles analytiques ou de soumission en aval. Les mappings et la provenance deviennent centraux."
+/>
+
+## Les couches européenne et française
+
+<StepFlow
+  caption="Un profil national n’est pas « un standard de plus » : c’est une implémentation contrainte de standards globaux pour un contexte légal, organisationnel et linguistique."
+  steps={[
+    { title: 'Global', body: 'HL7, IHE, DICOM, openEHR, SNOMED, LOINC, CDISC, OHDSI.' },
+    { title: 'Europe', body: 'HL7 Europe Base & Core, guides alignés EHDS, projets européens.' },
+    { title: 'France', body: 'ANS / CI-SIS, Interop’Santé, HL7 France, IHE France, HPRIM.' },
+    { title: 'Projet', body: 'IG d’établissement, règles de validation, mappings, contrats, scripts de test.' },
+    { title: 'Preuve', body: 'Instances valides, tests rejouables, écarts documentés.' },
+  ]}
+/>
+
+## Activité — choisir les standards d’Argus
+
+Argus consomme : identité patient, rendez-vous, structure, professionnels, lits, matériel, logistique
+et alertes. Objectif : une vision opérationnelle partagée pour la coordination hospitalière.
+
+| Domaine | Piste de réponse |
+| --- | --- |
+| Identité patient | FHIR `Patient` / IHE PIXm, PDQm / règles INS nationales |
+| Rendez-vous | FHIR `Appointment`, `Schedule`, `Slot` + workflow local |
+| Structure | FHIR `Organization`, `Location`, `HealthcareService` + gouvernance |
+| Professionnels | FHIR `Practitioner`, `PractitionerRole` + RPPS / identifiants internes |
+| Matériel | FHIR `Device`, `DeviceMetric` ; SDC pour les dispositifs concernés |
+| Imagerie | DICOM + profils IHE imagerie + FHIR `ImagingStudy` / `DiagnosticReport` |
+| Résultats de biologie | FHIR `Observation` / `DiagnosticReport` + LOINC + UCUM + SNOMED CT |
+| Analytique | Exports et mappings FHIR → OMOP ; essais et soumissions → CDISC |
+
+<Callout variant="key">
+Il y a rarement une seule réponse. Une architecture **combine** les standards et les **contraint** par
+des profils, de la gouvernance et des tests.
+</Callout>
+
+<MatchActivity
+  id="who-standardises"
+  title="À quel organisme s’adresser ?"
+  instruction="Pour chaque besoin, désignez l’organisme ou la famille de standards la plus pertinente."
+  options={[
+    { id: 'hl7', label: 'HL7' },
+    { id: 'ihe', label: 'IHE' },
+    { id: 'dicom', label: 'DICOM' },
+    { id: 'openehr', label: 'openEHR' },
+    { id: 'term', label: 'SNOMED / LOINC' },
+    { id: 'research', label: 'CDISC / OMOP' },
+  ]}
+  items={[
+    {
+      text: 'Définir la structure d’échange d’une observation de laboratoire via une API web.',
+      answer: 'hl7',
+      note: 'FHIR Observation : structure et mécanisme d’échange.',
+    },
+    {
+      text: 'Obtenir une spécification testée de partage documentaire entre établissements, avec acteurs et transactions.',
+      answer: 'ihe',
+      note: 'XDS.b et ses profils voisins, validés en Connectathon.',
+    },
+    {
+      text: 'Récupérer une série d’images et ses métadonnées depuis un PACS.',
+      answer: 'dicom',
+      note: 'Objets et services d’imagerie : c’est le domaine natif de DICOM.',
+    },
+    {
+      text: 'Modéliser durablement le contenu clinique d’un dossier longitudinal, avec des archétypes partagés.',
+      answer: 'openehr',
+      note: 'Reference model, archétypes, templates, CDR et AQL.',
+    },
+    {
+      text: 'Donner un identifiant stable au concept « infarctus du myocarde ».',
+      answer: 'term',
+      note: 'SNOMED CT pour les constats cliniques ; LOINC pour les observations et examens.',
+    },
+    {
+      text: 'Harmoniser des données de vie réelle issues de plusieurs bases pour une étude fédérée.',
+      answer: 'research',
+      note: 'OMOP CDM et les outils OHDSI. CDISC servirait pour une soumission réglementaire.',
+    },
+  ]}
+/>
+
+## Micro-QCM
+
+<Quiz
+  id="m5-quiz"
+  title="Quatre questions de repérage"
+  questions={[
+    {
+      q: 'Quelle organisation maintient SNOMED CT ?',
+      options: ['HL7', 'SNOMED International', 'Regenstrief', 'OHDSI'],
+      answer: 1,
+      explain:
+        'SNOMED International. Regenstrief est responsable de LOINC et d’UCUM ; OHDSI porte OMOP ; HL7 produit FHIR, v2 et CDA.',
+    },
+    {
+      q: 'Quel standard est le plus spécifique aux objets et services d’imagerie médicale ?',
+      options: ['DICOM', 'OMOP', 'openEHR', 'CDISC'],
+      answer: 0,
+      explain: 'DICOM couvre images, séries, études, comptes rendus, formes d’onde et les services associés.',
+    },
+    {
+      q: 'Quelle organisation profile des standards existants en spécifications d’intégration testables ?',
+      options: ['IHE', 'LOINC', 'CDISC', 'ANS'],
+      answer: 0,
+      explain:
+        'IHE assemble cas d’usage, acteurs, transactions et standards sous-jacents, puis les éprouve en Connectathon.',
+    },
+    {
+      q: 'CDISC est principalement associé à…',
+      options: [
+        'des API hospitalières',
+        'des jeux de données et soumissions d’essais cliniques',
+        'des fichiers d’imagerie',
+        'la structure hospitalière',
+      ],
+      answer: 1,
+      explain:
+        'CDISC couvre la recherche régulée : CDASH, SDTM, ADaM, Define-XML, ODM et terminologie contrôlée.',
+    },
+  ]}
+/>
+
+## À retenir
+
+- **HL7 / FHIR** structure l’échange et les API.
+- **IHE** rend les choix d’intégration concrets et testables.
+- **DICOM** domine l’interopérabilité en imagerie.
+- **SNOMED CT, LOINC, UCUM** donnent du sens à la donnée.
+- **CDISC et OMOP** organisent la recherche et l’analytique.
+- Les couches **européenne et française** contraignent les standards globaux pour une implémentation
+  réelle.
+
+Module suivant : FHIR en pratique — pourquoi ce standard est devenu le point de convergence, et ce
+qu’il change concrètement.

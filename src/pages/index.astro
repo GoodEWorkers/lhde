@@ -1,0 +1,26 @@
+---
+/**
+ * Root entry. Astro's i18n routing turns this into a redirect to the default
+ * locale; the markup below is the no-JS / crawler fallback.
+ */
+import { defaultLang } from '../i18n/utils';
+
+const target = `/${defaultLang}/`;
+---
+
+<!doctype html>
+<html lang={defaultLang}>
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="refresh" content={`0; url=${target}`} />
+    <link rel="canonical" href={target} />
+    <link rel="alternate" hreflang="fr" href="/fr/" />
+    <link rel="alternate" hreflang="en" href="/en/" />
+    <link rel="alternate" hreflang="x-default" href="/fr/" />
+    <title>LHDE — Learn Health Data Exchange</title>
+  </head>
+  <body>
+    <p><a href={target}>LHDE — Français</a></p>
+    <p><a href="/en/">LHDE — English</a></p>
+  </body>
+</html>

@@ -1,0 +1,75 @@
+---
+import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
+import type { ModuleEntry } from '../lib/modules';
+
+interface Props {
+  module: ModuleEntry;
+}
+
+const { module } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const d = module.data;
+
+const levelLabel = {
+  intro: t('level.intro'),
+  core: t('level.core'),
+  advanced: t('level.advanced'),
+  project: t('level.project'),
+}[d.level];
+
+const levelTone = {
+  intro: 'text-yellow border-yellow/40',
+  core: 'text-orange border-orange/40',
+  advanced: 'text-purple border-purple/40',
+  project: 'text-white border-white/40',
+}[d.level];
+---
+
+<article
+  class="group relative flex h-full flex-col rounded-2xl bg-black-light p-6 transition-colors hover:bg-black-soft"
+  data-module-card
+  data-module-slug={d.route}
+>
+  <div class="flex items-center gap-3">
+    <span class="font-clash text-4xl leading-none font-bold text-orange">{String(d.order).padStart(2, '0')}</span>
+    <span class={`rounded-full border px-3 py-0.5 text-[0.7rem] font-bold uppercase ${levelTone}`}>{levelLabel}</span>
+    <span
+      class="ml-auto hidden rounded-full bg-emerald-400/15 px-3 py-0.5 text-[0.7rem] font-bold text-emerald-400"
+      data-done-badge
+    >
+      {t('module.completed')}
+    </span>
+  </div>
+
+  <h3 class="mt-4 font-clash text-xl leading-tight text-white md:text-2xl">
+    <a href={localePath(lang, `modules/${d.route}`)} class="after:absolute after:inset-0">
+      {d.title}
+    </a>
+  </h3>
+  <p class="mt-2 text-sm text-midgray">{d.subtitle}</p>
+
+  <p class="mt-5 border-l-2 border-orange/50 pl-4 text-sm leading-relaxed text-ashgray">
+    <span class="font-clash text-xs tracking-widest text-orange uppercase">{t('module.outcome')}</span><br />
+    {d.outcome}
+  </p>
+
+  <div class="mt-auto flex items-center gap-4 pt-6 text-xs text-midgray">
+    <span>{d.duration} min</span>
+    <span aria-hidden="true">·</span>
+    <span>{d.agenda.length} {lang === 'fr' ? 'sections' : 'sections'}</span>
+    <span class="ml-auto font-bold text-orange transition-transform group-hover:translate-x-1">→</span>
+  </div>
+</article>
+
+<script>
+  import { completedModules } from '../lib/progress';
+
+  const done = completedModules();
+  document.querySelectorAll<HTMLElement>('[data-module-card]').forEach((card) => {
+    if (done.includes(card.dataset.moduleSlug ?? '')) {
+      card.querySelector('[data-done-badge]')?.classList.remove('hidden');
+      card.classList.add('ring-1', 'ring-emerald-400/40');
+    }
+  });
+</script>

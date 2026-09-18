@@ -1,0 +1,30 @@
+---
+import { render } from 'astro:content';
+import ModuleLayout from '../../../layouts/ModuleLayout.astro';
+import { languages, type Lang } from '../../../i18n/utils';
+import { getModules, neighbours } from '../../../lib/modules';
+
+export async function getStaticPaths() {
+  const paths = [];
+
+  for (const lang of Object.keys(languages) as Lang[]) {
+    const modules = await getModules(lang);
+    for (const module of modules) {
+      const { prev, next } = neighbours(modules, module.data.route);
+      paths.push({
+        params: { lang, slug: module.data.route },
+        props: { module, prev, next, total: modules.length },
+      });
+    }
+  }
+
+  return paths;
+}
+
+const { module, prev, next, total } = Astro.props;
+const { Content } = await render(module);
+---
+
+<ModuleLayout module={module} prev={prev} next={next} total={total}>
+  <Content />
+</ModuleLayout>

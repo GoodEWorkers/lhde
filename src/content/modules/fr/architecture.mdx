@@ -1,0 +1,335 @@
+---
+route: architecture
+lang: fr
+order: 8
+phase: 4
+level: advanced
+title: Architecture d’interopérabilité
+subtitle: Concevoir des systèmes capables d’échanger, comprendre, tracer et sécuriser.
+outcome: >-
+  Identifier les services socles d’une architecture d’interopérabilité — identité, terminologie,
+  autorisation, audit, validation, transformation — et esquisser une architecture cible.
+duration: 60
+question: Une API FHIR suffit-elle à faire une architecture interopérable ?
+agenda:
+  - L’anti-pattern du SI spaghetti
+  - Les couches d’une architecture d’interopérabilité
+  - Les services socles
+  - Traçabilité, droits et validation
+  - Architecture cible d’Argus
+argus: >-
+  Dessinez l’architecture cible d’Argus : sources, services socles, points de contrôle, usages. Puis
+  répondez à cinq questions — dont « où placer le serveur de terminologie ? »
+sources:
+  - MCLB 8 — Architecture et interopérabilité (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import Checklist from '../../../components/Checklist.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## L’anti-pattern : le SI spaghetti
+
+DPI, biologie, imagerie, agenda, RH, facturation, lits, matériel, bloc, pilotage. Entre chacun, une
+interface spécifique. Chaque lien porte sa propre logique, son propre mapping, ses propres règles de
+sécurité et de reprise sur incident.
+
+Les conséquences sont toujours les mêmes : dette technique, données incohérentes, traçabilité
+difficile, sécurité fragmentée, chaque projet qui recommence, et très peu de réutilisation.
+
+<Callout variant="key">
+Le problème n’est pas « faire passer un message ». C’est concevoir une architecture capable de
+**durer**.
+</Callout>
+
+## Les couches d’une architecture d’interopérabilité
+
+<StepFlow
+  caption="Les services socles ne doivent pas être réinventés par chaque application : ils portent les règles communes — sens, droits, traces, qualité."
+  steps={[
+    { title: 'Usages', body: 'Applications métier, mobilité, IA, pilotage, recherche.' },
+    { title: 'Services applicatifs', body: 'API, événements, orchestration, requêtes, documents.' },
+    { title: 'Services d’interopérabilité', body: 'Serveur FHIR, serveur de terminologie, transformation, validation.' },
+    { title: 'Gouvernance & sécurité', body: 'IAM, consentement, droits, audit, provenance, qualité.' },
+    { title: 'Sources de données', body: 'DPI, laboratoire, imagerie, RH, agenda, matériel, structure.' },
+  ]}
+/>
+
+## Les six services socles
+
+Ils transforment une collection d’échanges en infrastructure réutilisable.
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Identity / MPI', title: 'Qui est-ce ?', body: 'Qui est le patient ? Qui est le professionnel ? Rapprochements, domaines d’identification, qualité d’identité.' },
+    { tag: 'Terminology', title: 'Que signifie ce code ?', body: 'Est-il valide dans ce contexte ? Quelle version fait foi ? Quelle traduction appliquer ?' },
+    { tag: 'Authorization', title: 'Qui a le droit ?', body: 'Qui peut voir quoi, pour quel usage, sous quelles conditions ?' },
+    { tag: 'Audit / provenance', title: 'D’où vient la donnée ?', body: 'Qui l’a produite, transformée, consultée, et quand ?' },
+    { tag: 'Validation', title: 'Est-ce conforme ?', body: 'L’instance respecte-t-elle le profil attendu, avant d’entrer dans le socle ?' },
+    { tag: 'Transformation', title: 'Comment passer du legacy ?', body: 'Quelles règles de conversion vers le modèle cible, et quelles pertes assumées ?' },
+  ]}
+/>
+
+### Le serveur de terminologie : la colonne vertébrale du sens
+
+Sans service de terminologie, la sémantique reste **codée en dur dans les applications** — donc
+dupliquée, divergente et impossible à corriger globalement. Les cinq opérations vues au module 4
+(`$expand`, `$lookup`, `$validate-code`, `$translate`, `$subsumes`) deviennent ici un composant
+d’architecture.
+
+<Callout variant="key">
+Règle d’architecture : les applications **consomment** le sens, elles ne le réinventent pas.
+</Callout>
+
+### Les référentiels : les fondations souvent oubliées
+
+Patient, professionnels, organisation, lieu, matériel, rendez-vous. Si les référentiels sont
+instables, l’architecture est instable — quelle que soit la qualité du serveur FHIR posé au-dessus.
+
+<Callout variant="reflect">
+Dans votre contexte, lequel de ces six référentiels est le moins gouverné ? C’est lui qui limitera le
+plafond de tout projet d’interopérabilité à venir.
+</Callout>
+
+## Traçabilité : rendre la donnée explicable
+
+Une donnée interopérable doit pouvoir être comprise dans son **contexte de production et de
+transformation**.
+
+**Système source → transformation → ressource FHIR → usage.** À chaque étape, six éléments doivent
+rester attachables : source de vérité, date et version, auteur ou système producteur, règle de
+transformation appliquée, consentement et base légale, accès et consultations.
+
+<Callout variant="key">
+Traçabilité = confiance + auditabilité + **capacité à corriger**. Le troisième terme est celui qu’on
+oublie.
+</Callout>
+
+## Gestion des droits : l’interopérabilité doit rester maîtrisée
+
+Plus les données circulent, plus les droits doivent être explicites, centralisés et auditables. Le
+chemin type : *Identity provider (IAM / SSO) → API gateway (policy enforcement) → services FHIR et
+données → applications et utilisateurs.*
+
+<CardGrid
+  columns={4}
+  cards={[
+    { tag: 'Authentification', title: 'Qui appelle ?', body: 'Quel utilisateur ou quel système est à l’origine de la requête ?' },
+    { tag: 'Autorisation', title: 'Quels droits ?', body: 'Quelles ressources, quels scopes, quelles conditions ?' },
+    { tag: 'Purpose of use', title: 'Pour quoi faire ?', body: 'Soin, administration, recherche, pilotage : la finalité change les droits.' },
+    { tag: 'Audit', title: 'Qui a vu quoi ?', body: 'Quand, dans quel contexte, et qui peut consulter ces traces ?' },
+  ]}
+  caption="Gérer les droits application par application produit incohérence, audit impossible et risque de conformité."
+/>
+
+## Validation et qualité : rendre l’interopérabilité vérifiable
+
+Une architecture mature ne fait pas que transporter : elle **contrôle la conformité** des données.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Structurel',
+      title: 'La forme',
+      tone: 'orange',
+      points: ['Cardinalités et types', 'Éléments obligatoires', 'Extensions autorisées'],
+    },
+    {
+      label: 'Sémantique',
+      title: 'Le sens',
+      tone: 'purple',
+      points: ['Bindings et codes autorisés', 'Cohérence des unités', 'Cohérence des systèmes de codes'],
+    },
+    {
+      label: 'Métier',
+      title: 'L’usage',
+      tone: 'yellow',
+      points: ['Règles d’usage', 'Cohérence temporelle', 'Statut et provenance'],
+    },
+  ]}
+  caption="Et dans tous les cas : des messages d’erreur exploitables pour corriger, pas seulement pour rejeter."
+/>
+
+## Gouvernance d’architecture : qui décide quoi ?
+
+| Rôle | Responsabilité |
+| --- | --- |
+| **Data owner** | Définit le sens métier, la qualité attendue, les règles d’usage. |
+| **Product / application owner** | Expose ou consomme les API selon le contrat d’échange. |
+| **Équipe interop** | Maintient les profils, mappings, validateurs et standards internes. |
+| **Sécurité / DPO** | Définit accès, consentement, audit et conformité. |
+| **Exploitation** | Surveille flux, erreurs, performances et incidents. |
+
+<Callout variant="warning">
+Un bon modèle d’architecture évite surtout que **chaque projet invente ses propres règles**. C’est
+là, et pas dans le choix du serveur, que se joue la durabilité.
+</Callout>
+
+## Architecture cible d’Argus
+
+Les sources — DPI, agenda, RH, GMAO, gestion des lits, biologie — passent par des connecteurs et des
+mappings vers une **plateforme d’interopérabilité** qui expose API FHIR, terminologie, IAM, audit et
+validation. Les usages — pilotage, alertes, recherche — se branchent ensuite sur des **données
+normalisées**.
+
+<Callout variant="key">
+Principe : les usages se branchent sur des **services gouvernés**, pas directement sur chaque silo.
+</Callout>
+
+<Reveal question="Comment alimenter une vision unifiée sans recréer un monolithe ?">
+En séparant trois choses que les projets confondent :
+
+1. **La capture** — connecteurs et mappings, spécifiques par nature et assumés comme tels.
+2. **Le socle** — objets métier stabilisés, gouvernés, versionnés, exposés par des services communs.
+3. **L’usage** — applications qui consomment le socle sans droit d’écriture sur ses règles.
+
+Le monolithe réapparaît dès que l’usage impose ses besoins directement au connecteur.
+</Reveal>
+
+## Exercice — concevoir l’architecture d’Argus
+
+Objectif : superviser rendez-vous, flux patients, disponibilité des ressources, structures et
+matériel. Sources : DPI, agenda, annuaire, référentiel structures, GMAO, outils de lit, capteurs.
+Contraintes : droits d’accès, traçabilité, qualité, synchronisation, continuité de service.
+Livrable : un schéma et cinq choix d’architecture argumentés.
+
+<Checklist
+  id="argus-architecture"
+  title="Les cinq questions à trancher"
+  intro="Cochez quand vous avez une réponse écrite — pas une intuition."
+  items={[
+    'Quels domaines de données faut-il stabiliser en premier ?',
+    'Où placer le serveur de terminologie, et qui l’alimente ?',
+    'Comment prouver l’origine d’une donnée affichée à l’écran ?',
+    'Comment gérer les droits par rôle et par finalité ?',
+    'Quelles données doivent être temps réel, lesquelles peuvent être différées ?',
+    'Où se situent les points de validation avant ingestion ?',
+    'Quel est le comportement attendu en mode dégradé ?',
+    'Qui est responsable de la correction d’une donnée fausse ?',
+  ]}
+/>
+
+## Activité — quel service socle manque ?
+
+<MatchActivity
+  id="core-services"
+  title="Diagnostiquer par le service manquant"
+  instruction="Pour chaque incident, désignez le service socle défaillant ou absent."
+  options={[
+    { id: 'identity', label: 'Identité / MPI' },
+    { id: 'terminology', label: 'Terminologie' },
+    { id: 'authz', label: 'Autorisation' },
+    { id: 'audit', label: 'Audit / provenance' },
+    { id: 'validation', label: 'Validation' },
+    { id: 'transform', label: 'Transformation' },
+  ]}
+  items={[
+    {
+      text: 'Trois applications interprètent différemment le même code de statut de lit.',
+      answer: 'terminology',
+      note: 'Le sens a été codé en dur dans chaque application au lieu d’être consommé comme un service.',
+    },
+    {
+      text: 'Une instance non conforme au profil est entrée dans le socle et casse un tableau de bord.',
+      answer: 'validation',
+      note: 'Aucun point de contrôle avant ingestion.',
+    },
+    {
+      text: 'Un chercheur a accédé à des données de soin ; personne ne sait au titre de quelle finalité.',
+      answer: 'authz',
+      note: 'Purpose of use non modélisé : les droits ne dépendent que de l’identité.',
+    },
+    {
+      text: 'Une valeur affichée est contestée et personne ne peut dire de quel système elle provient.',
+      answer: 'audit',
+      note: 'Pas de provenance attachée à la donnée tout au long de la chaîne.',
+    },
+    {
+      text: 'Le même patient apparaît sous deux numéros dans deux vues de la tour de contrôle.',
+      answer: 'identity',
+      note: 'Rapprochement d’identités absent ou non gouverné entre domaines.',
+    },
+    {
+      text: 'Le passage du format legacy au modèle cible perd systématiquement le motif d’admission.',
+      answer: 'transform',
+      note: 'Règle de transformation incomplète, et perte non documentée.',
+    },
+  ]}
+/>
+
+## Mini-QCM
+
+<Quiz
+  id="m8-quiz"
+  title="Quatre questions d’architecture"
+  questions={[
+    {
+      q: 'Une API FHIR suffit-elle à garantir une architecture interopérable ?',
+      options: [
+        'Oui, si elle expose toutes les ressources nécessaires.',
+        'Non : il faut aussi gouvernance, validation, sémantique, droits et traces.',
+        'Oui, à condition d’utiliser la dernière version de FHIR.',
+        'Non, il faut en plus un entrepôt de données.',
+      ],
+      answer: 1,
+      explain:
+        'L’API est une façade. Sans services socles gouvernés, on a déplacé le spaghetti derrière du JSON.',
+    },
+    {
+      q: 'Pourquoi centraliser la terminologie ?',
+      options: [
+        'Pour réduire la latence des appels.',
+        'Pour éviter que chaque application interprète les codes différemment.',
+        'Parce que FHIR l’impose.',
+        'Pour diminuer le volume stocké.',
+      ],
+      answer: 1,
+      explain:
+        'Un sens dupliqué diverge toujours. Centraliser rend la correction et le versionnement possibles à l’échelle.',
+    },
+    {
+      q: 'À quoi sert la provenance ?',
+      options: [
+        'À accélérer les requêtes.',
+        'À expliquer l’origine, la transformation et la responsabilité de la donnée.',
+        'À remplacer les journaux applicatifs.',
+        'À chiffrer les échanges.',
+      ],
+      answer: 1,
+      explain:
+        'Sans provenance, une donnée contestée ne peut être ni expliquée ni corrigée — et la confiance disparaît.',
+    },
+    {
+      q: 'Quel risque si les droits sont gérés application par application ?',
+      options: [
+        'Un coût de licence plus élevé.',
+        'Incohérence, audit difficile, risque de sécurité et de conformité.',
+        'Des performances dégradées uniquement.',
+        'Aucun risque tant que chaque application est correcte.',
+      ],
+      answer: 1,
+      explain:
+        'Chaque application invente ses règles ; plus rien n’est comparable ni auditable globalement, et la conformité devient indémontrable.',
+    },
+  ]}
+/>
+
+## À retenir
+
+L’interopérabilité durable est une **propriété d’architecture**, pas seulement de format.
+
+- Un bon système expose des services gouvernés plutôt qu’une accumulation de connecteurs.
+- Les services socles — identité, terminologie, droits, audit, validation, transformation — doivent
+  être conçus au départ.
+- La traçabilité et la gestion des droits ne sont pas des couches ajoutées après coup.
+- La valeur vient quand les données peuvent être combinées, comprises, sécurisées et **utilisées pour
+  agir**.
+
+Dernier module : appliquer tout cela à un projet d’intégration réel, de la demande métier au dossier
+livrable.

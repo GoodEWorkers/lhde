@@ -1,0 +1,48 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+interface Props {
+  slug: string;
+}
+
+const { slug } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<button
+  type="button"
+  class="pill-ghost text-sm"
+  data-complete-toggle
+  data-slug={slug}
+  data-label-todo={t('module.complete')}
+  data-label-done={`✓ ${t('module.completed')}`}
+  aria-pressed="false"
+>
+  {t('module.complete')}
+</button>
+
+<script>
+  import { completedModules, setCompleted } from '../lib/progress';
+
+  document.querySelectorAll<HTMLButtonElement>('[data-complete-toggle]').forEach((btn) => {
+    const slug = btn.dataset.slug!;
+
+    const paint = (done: boolean) => {
+      btn.setAttribute('aria-pressed', String(done));
+      btn.textContent = (done ? btn.dataset.labelDone : btn.dataset.labelTodo) ?? '';
+      btn.classList.toggle('pill-ghost', !done);
+      btn.classList.toggle('pill', done);
+      btn.classList.toggle('bg-emerald-400', done);
+      btn.classList.toggle('text-black', done);
+    };
+
+    btn.addEventListener('click', () => {
+      const done = btn.getAttribute('aria-pressed') !== 'true';
+      setCompleted(slug, done);
+      paint(done);
+    });
+
+    paint(completedModules().includes(slug));
+  });
+</script>

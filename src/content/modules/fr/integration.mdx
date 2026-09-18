@@ -1,0 +1,352 @@
+---
+route: integration
+lang: fr
+order: 9
+phase: 4
+level: advanced
+title: Théorie de l’intégration
+subtitle: Du besoin métier au dossier d’intégration.
+outcome: >-
+  Appliquer les couches du ReEIF à un projet d’intégration pour identifier les décisions techniques,
+  sémantiques, métier, organisationnelles et juridiques à prendre — et les livrables associés.
+duration: 55
+question: L’interface fonctionne en recette. Le projet est-il validé ?
+agenda:
+  - Un projet d’intégration est multidimensionnel
+  - Le ReEIF comme checklist de conception
+  - Couche par couche — décisions, risques, livrables
+  - Du besoin métier au dossier d’intégration
+  - Cadrer un projet complet
+argus: >-
+  Choisissez un seul flux entrant d’Argus et remplissez la grille ReEIF complète. Puis identifiez la
+  couche la plus risquée, une décision d’architecture et un livrable à produire.
+sources:
+  - MCLB 9 — Théorie de l’intégration (XiA Educathon, Fyrstain)
+  - eHealth Network, Refined eHealth European Interoperability Framework, 2015
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import Checklist from '../../../components/Checklist.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import LayerStack from '../../../components/LayerStack.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## Intégrer, ce n’est pas seulement brancher
+
+Un flux technique peut fonctionner tout en laissant le projet non maîtrisé. La question de départ
+n’est donc pas « comment connecter ? » mais : **quand une application doit recevoir des données
+hospitalières, que faut-il réellement décider ?**
+
+<CardGrid
+  columns={5}
+  cards={[
+    { tag: 'Connexion', title: 'Accès et sécurité', body: 'Le système est-il accessible, sécurisé et supervisé ?' },
+    { tag: 'Format', title: 'Mécanisme', body: 'Quel message, document, API ou fichier est échangé ?' },
+    { tag: 'Sens', title: 'Alignement', body: 'Identifiants, codes, unités et valeurs sont-ils alignés ?' },
+    { tag: 'Usage', title: 'Processus', body: 'Qui valide, qui agit, quand et selon quel processus ?' },
+    { tag: 'Responsabilité', title: 'Gouvernance', body: 'Qui possède le flux, corrige les erreurs et audite les accès ?' },
+  ]}
+  caption="L’intégration est une activité d’architecture : elle transforme un besoin métier en chaîne de décisions cohérentes."
+/>
+
+## Le ReEIF comme checklist de conception
+
+Vous avez rencontré le ReEIF au module 1 comme grille de **diagnostic**. Ici il devient une grille de
+**conception** : chaque couche produit des décisions, des risques et des livrables différents.
+
+<LayerStack
+  caption="Chaque couche produit des décisions, des risques et des livrables différents."
+  layers={[
+    {
+      id: 'legal',
+      name: '6 — Juridique',
+      question: 'Le traitement et l’échange sont-ils autorisés et conformes ?',
+      detail:
+        'Finalité du traitement, base légale ou consentement, hébergement et exigences de sécurité, traçabilité et exercice des droits, contrats et sous-traitance, SLA, réversibilité.',
+      actors: 'DPO, juridique, direction, hébergeur.',
+      failure:
+        'La conformité arrive en fin de projet et remet en cause l’architecture, les accès, les traces et les contrats.',
+    },
+    {
+      id: 'org',
+      name: '5 — Organisation',
+      question: 'Qui est responsable du flux, des erreurs et de la gouvernance ?',
+      detail:
+        'Responsable métier qui définit l’usage et valide le processus ; DSI qui exploite et surveille ; RSSI et DPO qui valident sécurité et conformité ; éditeurs qui respectent spécification, SLA et corrections ; gouvernance donnée qui arbitre référentiels et changements.',
+      actors: 'Métier, DSI, RSSI, DPO, éditeurs, gouvernance donnée.',
+      failure: 'Sans gouvernance, les exceptions deviennent la norme et l’intégration redevient artisanale.',
+    },
+    {
+      id: 'business',
+      name: '4 — Métier',
+      question: 'Le processus médical est-il validé et partagé ?',
+      detail:
+        'À quel moment du parcours la donnée est produite, transmise, utilisée ; quel professionnel valide ou corrige ; quelle décision dépend de cette donnée ; que se passe-t-il si elle est absente, en retard ou incohérente.',
+      actors: 'Médecins, soignants, cadres, responsables de processus.',
+      failure:
+        'Une intégration validée « parce que le message passe », alors que le processus, lui, ne fonctionne pas.',
+    },
+    {
+      id: 'information',
+      name: '3 — Information',
+      question: 'Codes, unités, identifiants et modèles sont-ils alignés ?',
+      detail:
+        'Identifiants patients, agents et structures ; codes locaux et terminologies standard ; unités, dates, statuts, valeurs nulles ; versions de référentiels ; règles de transformation et d’arrondi.',
+      actors: 'Analystes, experts terminologie, équipe interop.',
+      failure:
+        'Le projet échoue non parce que les données ne passent pas, mais parce qu’elles ne veulent pas dire la même chose.',
+    },
+    {
+      id: 'application',
+      name: '2 — Application',
+      question: 'Quel mécanisme d’échange syntaxique est utilisé ?',
+      detail:
+        'Message push, API, document ou fichier. À vérifier dans tous les cas : version, format exact, accusés de réception, gestion des erreurs, rejeux, profil attendu, comportement en cas d’échec.',
+      actors: 'Éditeurs, intégrateurs, développeurs.',
+      failure: 'Un rejeu non prévu duplique des séjours en production, un dimanche soir.',
+    },
+    {
+      id: 'infrastructure',
+      name: '1 — Infrastructure',
+      question: 'Comment les systèmes se connectent-ils de manière sûre ?',
+      detail:
+        'Ouverture de ports et règles réseau ; SFTP, VPN, TLS, proxy ou messagerie ; adresses, DNS, certificats, pare-feu ; authentification technique et rotation des secrets ; supervision, alertes et disponibilité.',
+      actors: 'Réseau, exploitation, cybersécurité.',
+      failure:
+        'Flux bloqué en production, authentification faible, absence de journalisation exploitable, dépendance à un compte générique, aucun scénario de reprise.',
+    },
+  ]}
+/>
+
+## Ce que chaque couche doit produire
+
+| Couche | Livrables attendus |
+| --- | --- |
+| Infrastructure | Matrice de flux, dossier d’architecture technique, modèle d’authentification, plan de supervision, procédure d’exploitation |
+| Application | Spécification d’échange, version et profil attendus, gestion d’erreur et de rejeu, jeux de messages de test |
+| Information | Dictionnaire de données, tables de mapping, ValueSets, règles de transformation, tests de non-régression sémantique |
+| Métier | Scénarios métier, critères d’acceptation, jeux de tests, validation médicale, procédures de mode dégradé |
+| Organisation | RACI du flux, contrat d’échange, circuit de correction, engagement de service |
+| Juridique | Analyse de finalité, base légale, registre de traitement, clauses contractuelles, plan de traçabilité |
+
+<Callout variant="key">
+Un bon dossier d’intégration rend **explicites les hypothèses** que les projets laissent
+habituellement implicites. C’est là son unique valeur — et elle est considérable.
+</Callout>
+
+## Outils et questions clés de la couche Information
+
+La couche Information est celle qui fait échouer le plus de projets, et la plus facile à sous-estimer
+en phase de cadrage.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'À aligner',
+      title: 'Les objets du désaccord',
+      tone: 'purple',
+      points: [
+        'Identifiants patients, agents, structures',
+        'Codes locaux et terminologies standard',
+        'Unités, dates, statuts, valeurs nulles',
+        'Versions de référentiels',
+        'Règles de transformation et d’arrondi',
+      ],
+    },
+    {
+      label: 'Outils utiles',
+      title: 'Ce qui existe déjà',
+      tone: 'orange',
+      points: [
+        'Serveur de terminologie',
+        'ValueSet et validation de codes',
+        'ConceptMap pour traduire',
+        'Référentiel d’identités',
+        'Tests de non-régression sémantique',
+      ],
+    },
+    {
+      label: 'Questions clés',
+      title: 'À poser avant de coder',
+      tone: 'yellow',
+      points: [
+        'Ce code veut-il dire la même chose des deux côtés ?',
+        'Quelle unité est attendue ?',
+        'Qui maintient la table de mapping ?',
+        'Que fait-on si un code inconnu arrive ?',
+        'Quelle source fait foi ?',
+      ],
+    },
+  ]}
+/>
+
+<Callout variant="warning">
+Une intégration n’est pas validée quand le message passe. Elle est validée quand **le processus
+fonctionne**.
+</Callout>
+
+## Du besoin métier au dossier d’intégration
+
+<StepFlow
+  caption="Le ReEIF fournit la carte ; le dossier d’intégration documente le trajet."
+  steps={[
+    { title: 'Cadrer le cas d’usage', body: 'Objectif, acteurs, décision attendue.' },
+    { title: 'Décrire les données', body: 'Modèle, codes, unités, identifiants.' },
+    { title: 'Choisir le mécanisme', body: 'API, message, document, fichier.' },
+    { title: 'Sécuriser le chemin', body: 'Flux, authentification, traces, supervision.' },
+    { title: 'Tester et gouverner', body: 'Recette métier, responsabilités, conformité.' },
+  ]}
+/>
+
+<Reveal question="Une interface SFTP fonctionne en recette. Peut-on dire que le projet d’intégration est validé ?">
+Non. Le fonctionnement en recette prouve l’infrastructure et, partiellement, l’application. Restent
+ouvertes quatre questions :
+
+- **Information** : les codes et unités sont-ils alignés avec la source réelle de production ?
+- **Métier** : le processus a-t-il été rejoué avec les professionnels concernés, y compris en mode
+  dégradé ?
+- **Organisation** : qui corrige une erreur détectée en production, et sous quel délai ?
+- **Juridique** : la finalité testée est-elle celle qui est autorisée ?
+</Reveal>
+
+## Cas fil rouge — intégrer Argus
+
+Objectif : agréger des données issues de silos pour produire une vision opérationnelle exploitable.
+Quatre domaines pour commencer : identité patient (identifiants, statut, rapprochement, qualité),
+rendez-vous (agenda, annulations, retards, présence), structure (services, unités, lits,
+organisations, lieux), matériel (disponibilité, localisation, état, maintenance).
+
+Le ReEIF sert ici à vérifier que chaque source est **techniquement connectée, syntaxiquement
+exploitable, sémantiquement comprise et organisationnellement gouvernée**.
+
+<Checklist
+  id="integration-file"
+  title="Grille de cadrage — un flux, six couches"
+  intro="Choisissez un flux réel. Cochez uniquement les cases pour lesquelles vous pouvez montrer un livrable écrit."
+  items={[
+    'Infrastructure : flux, ports, protocoles, certificats, comptes techniques, traces',
+    'Infrastructure : scénario de reprise et plan de supervision',
+    'Application : mécanisme, format, version, profil attendu',
+    'Application : gestion d’erreur, accusés de réception, rejeux',
+    'Information : codes, unités, identifiants, référentiels, mappings',
+    'Information : comportement face à un code inconnu',
+    'Métier : scénarios, critères d’acceptation, validation médicale',
+    'Métier : procédure de mode dégradé',
+    'Organisation : qui valide, qui agit, qui corrige, sous quel délai',
+    'Juridique : finalité, base légale, hébergement, contrats',
+  ]}
+/>
+
+## Activité — quelle couche est concernée ?
+
+<MatchActivity
+  id="integration-layers"
+  title="Diagnostiquer un projet d’intégration en cours"
+  instruction="Pour chaque symptôme, désignez la couche ReEIF principalement concernée."
+  options={[
+    { id: 'infra', label: 'Infrastructure' },
+    { id: 'app', label: 'Application' },
+    { id: 'info', label: 'Information' },
+    { id: 'business', label: 'Métier' },
+    { id: 'org', label: 'Organisation' },
+    { id: 'legal', label: 'Juridique' },
+  ]}
+  items={[
+    {
+      text: 'Un flux envoie un code local que le récepteur ne connaît pas.',
+      answer: 'info',
+      note: 'Alignement sémantique absent — et aucune règle pour le code inconnu.',
+    },
+    {
+      text: 'Personne ne sait qui corrige une erreur de données détectée en production.',
+      answer: 'org',
+      note: 'Gouvernance : sans responsable désigné, l’exception devient la norme.',
+    },
+    {
+      text: 'Le flux fonctionne mais les soignants n’ont jamais validé le moment où l’information arrive.',
+      answer: 'business',
+      note: 'Le processus médical n’a pas été rejoué : l’intégration n’est pas validée.',
+    },
+    {
+      text: 'Le certificat du partenaire expire et personne n’est alerté avant la coupure.',
+      answer: 'infra',
+      note: 'Supervision et procédure d’exploitation manquantes.',
+    },
+    {
+      text: 'Un rejeu non prévu a créé des doublons de séjours.',
+      answer: 'app',
+      note: 'Comportement en cas d’échec et idempotence non spécifiés.',
+    },
+    {
+      text: 'La réutilisation des données pour un tableau de bord de recherche n’a jamais été analysée.',
+      answer: 'legal',
+      note: 'Finalité et base légale : la conformité conditionne l’architecture, elle ne la suit pas.',
+    },
+  ]}
+/>
+
+## Quiz de sortie
+
+<Quiz
+  id="m9-quiz"
+  title="Trois questions de fin de parcours"
+  questions={[
+    {
+      q: 'Une interface SFTP fonctionne en recette. Le projet d’intégration est-il validé ?',
+      options: [
+        'Oui, la preuve technique suffit.',
+        'Non : il reste les couches Information, Métier, Organisation et Juridique.',
+        'Oui, si la documentation technique est à jour.',
+        'Non, il faut d’abord migrer vers une API.',
+      ],
+      answer: 1,
+      explain:
+        'La recette technique prouve l’infrastructure et une partie de l’application. Le reste du projet n’a pas encore été évalué.',
+    },
+    {
+      q: 'Un flux envoie un code local non connu du receveur. Quelle couche ReEIF est principalement concernée ?',
+      options: ['Infrastructure', 'Application', 'Information', 'Juridique'],
+      answer: 2,
+      explain:
+        'La donnée circule et est structurellement valide. C’est l’alignement du sens qui manque — couche Information.',
+    },
+    {
+      q: 'Personne ne sait qui corrige une erreur de données en production. De quel type de problème s’agit-il ?',
+      options: [
+        'Un problème technique.',
+        'Un problème de format.',
+        'Un problème d’organisation et de gouvernance.',
+        'Un problème de performance.',
+      ],
+      answer: 2,
+      explain:
+        'Aucune correction technique ne survivra à l’absence de responsable. C’est une décision de gouvernance, à prendre avant la mise en production.',
+    },
+    {
+      q: 'À quel moment la conformité réglementaire doit-elle être traitée ?',
+      options: [
+        'À la fin, une fois la solution stabilisée.',
+        'Dès le cadrage : elle conditionne architecture, accès, traces et contrats.',
+        'Uniquement si des données sensibles circulent.',
+        'Seulement en cas d’échange transfrontalier.',
+      ],
+      answer: 1,
+      explain:
+        'Traitée en dernier, la conformité remet en cause des choix déjà implémentés. Traitée au cadrage, elle les oriente.',
+    },
+  ]}
+/>
+
+## À retenir
+
+Une intégration réussie est un **alignement**. Technique, syntaxe, sémantique, métier, responsabilités
+et conformité doivent être pensés ensemble.
+
+Le ReEIF fournit la carte ; le dossier d’intégration documente le trajet.
+
+Vous avez maintenant l’outillage complet. Le projet final vous demande de l’utiliser : concevoir,
+spécifier, puis réaliser un prototype interopérable connecté à un serveur FHIR.

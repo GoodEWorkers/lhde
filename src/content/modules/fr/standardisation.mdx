@@ -1,0 +1,306 @@
+---
+route: standardisation
+lang: fr
+order: 2
+phase: 1
+level: intro
+title: Pourquoi standardiser ?
+subtitle: Passer du connecteur jetable au socle réutilisable.
+outcome: >-
+  Expliquer pourquoi la standardisation est nécessaire pour transformer des flux hétérogènes en socle
+  exploitable pour le soin, le pilotage et l’automatisation.
+duration: 45
+question: Connecter deux systèmes, est-ce déjà standardiser ?
+agenda:
+  - Pourquoi les silos empêchent la transformation
+  - Uniformisation, connecteurs, interopérabilité
+  - La donnée comme infrastructure opérationnelle
+  - Étude de cas — Hôpital Saint Joseph et la naissance d’Argus
+  - Diagnostiquer un silo
+argus: >-
+  Argus naît ici. Choisissez trois objets métier à standardiser en priorité pour rendre l’hôpital
+  observable — et justifiez pourquoi ces trois-là avant les autres.
+sources:
+  - MCLB 2 — Pourquoi standardiser ? (XiA Educathon, Fyrstain)
+  - Séminaire « Standardiser pour transformer », Service de Santé des Armées, 12 décembre 2025
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## Le problème : des données vitales mais dispersées
+
+Dans un hôpital, la valeur n’est jamais dans une application isolée. Elle apparaît au moment où des
+données peuvent être **reliées** :
+
+- les données cliniques, pour le soin ;
+- les données administratives, pour l’organisation ;
+- les données logistiques, pour l’exploitation ;
+- les données secondaires, pour la recherche et le pilotage.
+
+Standardiser, c’est rendre ces données réutilisables **sans reconstruire une interface spécifique à
+chaque usage**. C’est la seule différence qui compte.
+
+## Trois choses que l’on confond en permanence
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Piège n°1',
+      title: 'Uniformisation',
+      tone: 'yellow',
+      points: [
+        'Déployer le même logiciel sur plusieurs sites.',
+        'Réduit certains écarts de pratique…',
+        '…mais ne garantit ni langage commun, ni réutilisation transverse. Même outil, données toujours cloisonnées.',
+      ],
+    },
+    {
+      label: 'Piège n°2',
+      title: 'Connecteurs spécifiques',
+      tone: 'purple',
+      points: [
+        'Chaque intégration devient une traduction locale.',
+        'Fragile, coûteuse, rarement réutilisable.',
+        'Le savoir reste dans la tête de celui qui a écrit le mapping.',
+      ],
+    },
+    {
+      label: 'Objectif',
+      title: 'Interopérabilité',
+      tone: 'orange',
+      points: [
+        'Les acteurs partagent un modèle et un vocabulaire.',
+        'Les règles sont explicites et vérifiables.',
+        'Un contrat d’usage dit qui produit, qui corrige et pour quoi faire.',
+      ],
+    },
+  ]}
+  caption="Le standard ne sert pas seulement à échanger : il sert à stabiliser ce que l’on veut rendre calculable, réutilisable et gouvernable."
+/>
+
+<Callout variant="warning">
+L’hôpital a longtemps choisi l’**homogénéisation** plutôt que la standardisation : simplification
+locale plutôt qu’ouverture globale. Résultat : des déploiements homogènes, une multiplication des
+connecteurs sur-mesure, et toujours pas d’interopérabilité.
+</Callout>
+
+## Sans standards, les logiciels grossissent et les silos restent
+
+Observez le cycle. Il se rejoue à l’identique dans chaque établissement.
+
+<StepFlow
+  caption="Chaque usage numérique exige de redécouvrir, nettoyer et réconcilier les mêmes objets métier."
+  steps={[
+    { title: 'Nouveau besoin', body: 'Supervision, pilotage, alerte, recherche : un besoin métier apparaît.' },
+    { title: 'Nouvelle application', body: 'Un périmètre s’ajoute au SIH existant, avec son propre modèle.' },
+    { title: 'Interface spécifique', body: 'Mapping local, règles implicites, maintenance dédiée.' },
+    { title: 'Nouveau silo', body: 'La donnée reste peu réutilisable pour l’usage suivant.' },
+    { title: 'Retour au point 1', body: 'Le besoin d’après recommence depuis zéro. Le SI devient spaghetti.' },
+  ]}
+/>
+
+Les éditeurs réagissent logiquement : faute d’interopérabilité modulaire, ils élargissent leur
+périmètre fonctionnel. Les logiciels deviennent des monolithes tentaculaires, difficiles à faire
+évoluer, et chaque nouveau module réclame ses propres interfaces. L’établissement perd sa capacité à
+adopter des solutions innovantes.
+
+<Callout variant="key">
+Standardiser = transformer une **intégration ponctuelle** en **infrastructure réutilisable**.
+</Callout>
+
+## Automatiser n’existe pas sans données fiables
+
+Automatiser, c’est transformer des données en actions : alarmes, rappels, surveillance,
+synchronisation d’équipements. Une action automatique fiable suppose donc trois propriétés
+simultanées.
+
+<CardGrid
+  columns={3}
+  cards={[
+    {
+      tag: '1',
+      title: 'Donnée structurée',
+      body: 'Un modèle explicite, des cardinalités, des types, des identifiants. On sait ce qu’on lit et où le lire.',
+    },
+    {
+      tag: '2',
+      title: 'Donnée sémantique',
+      body: 'Des codes, des unités, des référentiels et des significations partagés. On sait ce que la valeur veut dire.',
+    },
+    {
+      tag: '3',
+      title: 'Donnée gouvernée',
+      body: 'Une provenance, une responsabilité, un cycle de vie et une qualité connus. On sait à qui parler quand c’est faux.',
+    },
+  ]}
+  caption="Une donnée fausse produit une action erronée : risque patient, risque opérationnel."
+/>
+
+<Callout variant="reflect">
+Une automatisation que vous connaissez — un rappel, une alerte, un calcul d’indicateur. Laquelle des
+trois propriétés est la plus fragile aujourd’hui dans votre contexte ? C’est elle qui cassera en
+premier.
+</Callout>
+
+## Étude de cas — Hôpital Saint Joseph, et la naissance d’Argus
+
+Un hôpital de taille moyenne : périmètre visible, complexité réelle. Les flux essentiels sont
+connus — identité, séjours, agendas, agents, structures, matériel. Le besoin métier est clair :
+supervision, traçabilité, compréhension des flux.
+
+L’objectif pédagogique du cas est de comprendre comment la **destruction progressive des silos** fait
+émerger une plateforme d’observation et de pilotage : **Argus**, une tour de contrôle hospitalière.
+
+### Quels objets faut-il standardiser pour piloter l’hôpital ?
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Identité patient', title: 'Qui est la personne ?', body: 'Quelles identités, quels rapprochements, quels liens entre domaines d’identification ?' },
+    { tag: 'Séjours', title: 'Où est le patient ?', body: 'Dans quel contexte de prise en charge, depuis quand, avec quel statut ?' },
+    { tag: 'Agenda / RDV', title: 'Quand une ressource est-elle mobilisée ?', body: 'Créneaux, annulations, retards, présence effective.' },
+    { tag: 'Agents', title: 'Qui agit ?', body: 'Quel rôle, quel identifiant, quelle organisation de rattachement ?' },
+    { tag: 'Structures', title: 'Où se situe l’activité ?', body: 'Service, unité, lieu, organisation. Le référentiel sans lequel rien ne s’agrège.' },
+    { tag: 'Matériel', title: 'Quelle ressource supporte l’activité ?', body: 'Dispositifs, équipements, disponibilité, maintenance.' },
+  ]}
+  caption="Chaque domaine isolé est utile. Reliés et standardisés, ils deviennent un système observable."
+/>
+
+### De flux hétérogènes à plateforme déportée
+
+Le DPI et l’administratif fournissent identités et séjours ; l’agenda fournit rendez-vous,
+ressources et disponibilités ; le SIRH fournit agents, rôles et affectations ; les référentiels
+fournissent structures, lieux et matériel. Tout converge vers une **plateforme FHIR déportée**, puis
+vers Argus — une couche de supervision fondée sur des données standardisées, traçables et
+réutilisables.
+
+<Callout variant="warning">
+La conversion technique ne suffit pas. Il faut stabiliser les **objets métier**, leur **provenance**
+et leur **cycle de vie**. Convertir du HL7 v2 en FHIR sans cela, c’est produire du JSON illisible au
+lieu de pipes illisibles.
+</Callout>
+
+### Ce qu’Argus rend possible
+
+<StepFlow
+  caption="Une tour de contrôle n’est pas un dashboard : c’est un usage rendu possible par un socle standardisé."
+  steps={[
+    { title: 'Observer', body: 'Suivre l’état du système hospitalier en temps quasi réel.' },
+    { title: 'Tracer', body: 'Comprendre l’origine, la transformation et la qualité des données.' },
+    { title: 'Décider', body: 'Prioriser, anticiper les tensions, coordonner les équipes.' },
+    { title: 'Automatiser', body: 'Déclencher des règles fiables à partir de données fiables.' },
+    { title: 'Réutiliser', body: 'Brancher recherche, IA et pilotage sur le même socle, sans nouveau chantier.' },
+  ]}
+/>
+
+<Reveal question="À partir de quel moment a-t-on vraiment standardisé, et pas seulement « connecté » ?">
+Quand un **deuxième** usage peut consommer le même objet métier sans qu’on écrive une nouvelle
+interface. Tant que chaque nouveau besoin rouvre un chantier de mapping, vous avez connecté ; vous
+n’avez pas standardisé.
+</Reveal>
+
+## Activité — diagnostiquer un silo
+
+Choisissez un flux hospitalier que vous connaissez et remplissez les cinq cases. Le livrable tient en
+une phrase : *« Pour standardiser X, il faut stabiliser Y, identifier Z, et définir la règle d’usage
+W. »*
+
+<MatchActivity
+  id="silo-diagnosis"
+  title="Quelle dimension manque-t-il ?"
+  instruction="Pour chaque symptôme observé sur un flux, désignez la dimension de standardisation qui fait défaut."
+  options={[
+    { id: 'object', label: 'Objet métier' },
+    { id: 'identifier', label: 'Identifiant' },
+    { id: 'semantics', label: 'Sémantique' },
+    { id: 'governance', label: 'Gouvernance' },
+    { id: 'usage', label: 'Usage cible' },
+  ]}
+  items={[
+    {
+      text: 'Le même patient apparaît trois fois dans le tableau de bord, avec trois numéros différents.',
+      answer: 'identifier',
+      note: 'Rien ne permet de reconnaître le même objet dans deux systèmes.',
+    },
+    {
+      text: 'Deux services appellent « sortie » deux événements différents du parcours.',
+      answer: 'object',
+      note: 'L’objet métier n’est pas défini de la même manière des deux côtés.',
+    },
+    {
+      text: 'Le champ « statut » contient tantôt un code local, tantôt un texte libre en français.',
+      answer: 'semantics',
+      note: 'Aucun référentiel ni ValueSet ne contraint les valeurs possibles.',
+    },
+    {
+      text: 'Une donnée est fausse depuis six mois et personne ne sait qui a le droit de la corriger.',
+      answer: 'governance',
+      note: 'Pas de propriétaire, pas de cycle de vie, pas de correction.',
+    },
+    {
+      text: 'Le flux est propre, documenté, alimenté — et aucune décision ne s’appuie dessus.',
+      answer: 'usage',
+      note: 'On a standardisé sans définir l’action que cela devait rendre possible.',
+    },
+  ]}
+/>
+
+## Quiz de sortie
+
+<Quiz
+  id="m2-quiz"
+  title="Trois questions pour distinguer connecter et standardiser"
+  questions={[
+    {
+      q: 'Un connecteur spécifique entre deux applications constitue-t-il une standardisation ?',
+      options: [
+        'Oui, dès lors que les deux systèmes échangent correctement.',
+        'Non : il connecte deux systèmes sans créer de socle réutilisable.',
+        'Oui, si le connecteur est documenté.',
+        'Non, sauf s’il utilise HL7 v2.',
+      ],
+      answer: 1,
+      explain:
+        'Un connecteur résout un lien. Un standard stabilise un objet métier que plusieurs usages pourront consommer sans nouvelle traduction.',
+    },
+    {
+      q: 'Pourquoi un référentiel de structures est-il critique pour une tour de contrôle ?',
+      options: [
+        'Parce qu’il réduit le volume de données transmis.',
+        'Parce qu’il permet de localiser, agréger et interpréter les activités dans l’organisation réelle.',
+        'Parce qu’il est exigé par le règlement européen.',
+        'Parce qu’il remplace le référentiel d’identités.',
+      ],
+      answer: 1,
+      explain:
+        'Sans structures stables, aucune agrégation n’a de sens : on ne sait pas de quel service, de quelle unité ni de quel site on parle.',
+    },
+    {
+      q: 'Quelle est la différence entre « donnée disponible » et « donnée opérationnelle » ?',
+      options: [
+        'La donnée opérationnelle est plus récente.',
+        'La donnée opérationnelle est stockée dans un entrepôt dédié.',
+        'La donnée opérationnelle est comprise, fiable, gouvernée et utilisable pour une action.',
+        'Il n’y a pas de différence pratique.',
+      ],
+      answer: 2,
+      explain:
+        'Disponible décrit l’accès. Opérationnel décrit la capacité à agir : sens partagé, qualité connue, responsabilité identifiée.',
+    },
+  ]}
+/>
+
+## À retenir
+
+On ne standardise pas pour « faire propre ». On standardise pour rendre l’hôpital **observable**,
+**gouvernable** et **automatisable**.
+
+Prochaine étape : comprendre la première moitié technique du problème — comment l’information
+circule, et pourquoi la forme de l’échange est un choix d’architecture avant d’être un choix de
+développeur.

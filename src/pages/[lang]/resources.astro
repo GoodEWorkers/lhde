@@ -1,0 +1,255 @@
+---
+import Base from '../../layouts/Base.astro';
+import { languages, useTranslations, type Lang } from '../../i18n/utils';
+
+export function getStaticPaths() {
+  return (Object.keys(languages) as Lang[]).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+
+/** The decks and documents this pathway was built from, kept in the repository. */
+const sourceDocs = [
+  {
+    file: 'MCLB1_Interop_sante_ReEIF_XiA_Educathon_FR.pdf',
+    fr: 'Interopérabilité en santé & ReEIF — les six couches et la lecture d’un problème.',
+    en: 'Health interoperability & ReEIF — the six layers and how to read a problem.',
+    module: 'foundations',
+  },
+  {
+    file: 'MCLB2_Pourquoi_standardiser_XiA_Educathon.pdf',
+    fr: 'Pourquoi standardiser — silos, connecteurs, socle réutilisable, cas Saint Joseph / Argus.',
+    en: 'Why standardise — silos, connectors, reusable foundation, the Saint Joseph / Argus case.',
+    module: 'standardisation',
+  },
+  {
+    file: 'MCLB3_Interop_syntaxique_XiA_Educathon.pdf',
+    fr: 'Interopérabilité syntaxique — messages, documents, APIs, événements, batch.',
+    en: 'Syntactic interoperability — messages, documents, APIs, events, batch.',
+    module: 'syntax',
+  },
+  {
+    file: 'MCLB4_Interop_semantique_XiA_Educathon.pdf',
+    fr: 'Interopérabilité sémantique — terminologies, codification, mappings, serveurs de terminologie.',
+    en: 'Semantic interoperability — terminologies, codification, mappings, terminology servers.',
+    module: 'semantics',
+  },
+  {
+    file: 'MCLB5_Qui_standardise_quoi_XiA_Educathon.pdf',
+    fr: 'Qui standardise quoi — HL7, IHE, DICOM, openEHR, terminologies, CDISC, OMOP.',
+    en: 'Who standardises what — HL7, IHE, DICOM, openEHR, terminologies, CDISC, OMOP.',
+    module: 'ecosystem',
+  },
+  {
+    file: 'MCLB7_Profilage_XiA_Educathon.pdf',
+    fr: 'Le profilage — standard, profil, guide d’implémentation, conformance.',
+    en: 'Profiling — standard, profile, implementation guide, conformance.',
+    module: 'profiling',
+  },
+  {
+    file: 'MCLB8_Architecture_interoperabilite_XiA_Educathon.pdf',
+    fr: 'Architecture et interopérabilité — services socles, traçabilité, droits, validation.',
+    en: 'Architecture and interoperability — core services, traceability, rights, validation.',
+    module: 'architecture',
+  },
+  {
+    file: 'MCLB9_Theorie_integration_XiA_Educathon_FR.pdf',
+    fr: 'Théorie de l’intégration — le ReEIF comme checklist de conception.',
+    en: 'Integration theory — ReEIF as a design checklist.',
+    module: 'integration',
+  },
+  {
+    file: 'Seminaire SSA V0.2.pdf',
+    fr: 'Séminaire « Standardiser pour transformer » — FHIR, EHDS, écosystème français, retours de terrain.',
+    en: 'Seminar “Standardise to transform” — FHIR, EHDS, the French ecosystem, field feedback.',
+    module: 'fhir',
+  },
+  {
+    file: 'ev_20151123_co03_en.pdf',
+    fr: 'eHealth Network — Refined eHealth European Interoperability Framework (23 novembre 2015).',
+    en: 'eHealth Network — Refined eHealth European Interoperability Framework (23 November 2015).',
+    module: 'foundations',
+  },
+  {
+    file: 'Evaluation_Interoperabilite_Sante_IA_Obligatoire_Groupes_v2.docx',
+    fr: 'Évaluation — concevoir, spécifier et réaliser une application interopérable en 3 heures.',
+    en: 'Assessment — design, specify and build an interoperable application in 3 hours.',
+    module: 'capstone',
+  },
+];
+
+const external = [
+  {
+    label: 'HL7 FHIR',
+    url: 'https://hl7.org/fhir/',
+    fr: 'Spécification de référence : ressources, recherche, opérations, paradigmes.',
+    en: 'The reference specification: resources, search, operations, paradigms.',
+  },
+  {
+    label: 'FHIR Implementation Guide Registry',
+    url: 'https://registry.fhir.org/',
+    fr: 'Annuaire des guides d’implémentation publiés — le point de départ pour trouver un profil.',
+    en: 'Directory of published implementation guides — the starting point for finding a profile.',
+  },
+  {
+    label: 'IHE Profiles',
+    url: 'https://profiles.ihe.net/',
+    fr: 'Profils IHE : cas d’usage, acteurs, transactions et standards sous-jacents.',
+    en: 'IHE profiles: use cases, actors, transactions and underlying standards.',
+  },
+  {
+    label: 'LOINC',
+    url: 'https://loinc.org/',
+    fr: 'Identifiants pour les observations, examens de laboratoire, mesures et documents.',
+    en: 'Identifiers for observations, laboratory tests, measurements and documents.',
+  },
+  {
+    label: 'SNOMED CT Browser',
+    url: 'https://browser.ihtsdotools.org/',
+    fr: 'Explorer les concepts cliniques, leurs relations et leur hiérarchie.',
+    en: 'Explore clinical concepts, their relationships and their hierarchy.',
+  },
+  {
+    label: 'UCUM',
+    url: 'https://ucum.org/',
+    fr: 'Codage normalisé des unités de mesure, à utiliser avec LOINC et FHIR.',
+    en: 'Normalised coding of units of measure, to be used with LOINC and FHIR.',
+  },
+  {
+    label: 'DICOM Standard',
+    url: 'https://www.dicomstandard.org/',
+    fr: 'Objets et services d’imagerie médicale.',
+    en: 'Medical imaging objects and services.',
+  },
+  {
+    label: 'openEHR',
+    url: 'https://openehr.org/',
+    fr: 'Modèle de référence, archétypes, templates, CDR et AQL.',
+    en: 'Reference model, archetypes, templates, CDR and AQL.',
+  },
+  {
+    label: 'OHDSI / OMOP CDM',
+    url: 'https://www.ohdsi.org/data-standardization/',
+    fr: 'Modèle de données commun pour l’analytique observationnelle fédérée.',
+    en: 'Common data model for federated observational analytics.',
+  },
+  {
+    label: 'CDISC',
+    url: 'https://www.cdisc.org/standards',
+    fr: 'Standards de recherche clinique régulée : CDASH, SDTM, ADaM, Define-XML, ODM.',
+    en: 'Regulated clinical research standards: CDASH, SDTM, ADaM, Define-XML, ODM.',
+  },
+  {
+    label: 'European Health Data Space',
+    url: 'https://health.ec.europa.eu/ehealth-digital-health-and-care/european-health-data-space_en',
+    fr: 'Le cadre réglementaire européen : interopérer, accéder, utiliser.',
+    en: 'The European regulatory frame: interoperate, access, use.',
+  },
+  {
+    label: 'HL7 Europe',
+    url: 'https://hl7.eu/',
+    fr: 'Profils européens et guides alignés sur l’EHDS.',
+    en: 'European profiles and EHDS-aligned guides.',
+  },
+];
+
+const publicServer = {
+  fr: {
+    title: 'Serveurs FHIR publics pour s’entraîner',
+    body: 'Le projet final exige une connexion réelle à un serveur FHIR. Les serveurs de test publics acceptent lecture, recherche et écriture — n’y déposez jamais de données réelles de patients.',
+  },
+  en: {
+    title: 'Public FHIR servers for practice',
+    body: 'The final project requires a real connection to a FHIR server. Public test servers accept read, search and write — never put real patient data on them.',
+  },
+}[lang];
+
+const servers = [
+  { label: 'HAPI FHIR public test server', url: 'https://hapi.fhir.org/baseR4' },
+  { label: 'Firely test server', url: 'https://server.fire.ly/' },
+];
+---
+
+<Base title={t('resources.title')} description={t('resources.lede')}>
+  <section class="container-x py-14 md:py-20">
+    <p class="eyebrow">{t('nav.resources')}</p>
+    <h1 class="mt-4 max-w-3xl font-clash text-4xl leading-[1.08] text-white md:text-6xl">
+      {t('resources.title')}
+    </h1>
+    <p class="mt-6 max-w-2xl leading-[1.7] text-midgray">{t('resources.lede')}</p>
+  </section>
+
+  <section class="container-x pb-16">
+    <h2 class="font-clash text-2xl text-white md:text-3xl">{t('resources.source_docs')}</h2>
+    <ul class="mt-8 space-y-2">
+      {
+        sourceDocs.map((d) => (
+          <li class="rounded-xl bg-black-light px-5 py-4">
+            <p class="font-mono text-xs break-all text-orange">{d.file}</p>
+            <p class="mt-2 text-sm text-ashgray">{lang === 'fr' ? d.fr : d.en}</p>
+            <a
+              href={`/${lang}/${d.module === 'capstone' ? 'capstone' : `modules/${d.module}`}`}
+              class="mt-2 inline-block text-xs font-bold text-midgray hover:text-orange"
+            >
+              → {d.module}
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="mt-6 max-w-2xl text-xs text-midgray">
+      {
+        lang === 'fr'
+          ? 'Ces fichiers sont conservés à la racine du dépôt. Le contenu du parcours en est dérivé, réorganisé et augmenté d’activités.'
+          : 'These files are kept at the repository root. The pathway content is derived from them, reorganised and extended with activities.'
+      }
+    </p>
+  </section>
+
+  <section class="container-x pb-16">
+    <div class="rounded-2xl border-l-4 border-yellow bg-black-light p-8">
+      <p class="eyebrow text-yellow">{publicServer.title}</p>
+      <p class="mt-3 max-w-2xl leading-relaxed text-ashgray">{publicServer.body}</p>
+      <ul class="mt-5 flex flex-wrap gap-3">
+        {
+          servers.map((s) => (
+            <li>
+              <a
+                href={s.url}
+                rel="noopener noreferrer"
+                target="_blank"
+                class="inline-block rounded-full border border-white/25 px-4 py-2 text-xs font-bold text-ashgray hover:border-orange hover:text-orange"
+              >
+                {s.label} ↗
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </div>
+  </section>
+
+  <section class="container-x pb-24">
+    <h2 class="font-clash text-2xl text-white md:text-3xl">{t('resources.external')}</h2>
+    <ul class="mt-8 grid gap-2 md:grid-cols-2">
+      {
+        external.map((r) => (
+          <li>
+            <a
+              href={r.url}
+              rel="noopener noreferrer"
+              target="_blank"
+              class="flex h-full flex-col rounded-xl border border-white/10 px-5 py-4 transition-colors hover:border-orange/60 hover:bg-black-light"
+            >
+              <span class="font-clash text-lg text-white">
+                {r.label} <span class="text-orange">↗</span>
+              </span>
+              <span class="mt-2 text-sm text-midgray">{lang === 'fr' ? r.fr : r.en}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

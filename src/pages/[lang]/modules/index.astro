@@ -1,0 +1,84 @@
+---
+import Base from '../../../layouts/Base.astro';
+import ModuleCard from '../../../components/ModuleCard.astro';
+import ProgressTracker from '../../../components/ProgressTracker.astro';
+import { languages, useTranslations, localePath, type Lang } from '../../../i18n/utils';
+import { getModules, getPhases, phaseKey } from '../../../lib/modules';
+import type { UIKey } from '../../../i18n/ui';
+
+export function getStaticPaths() {
+  return (Object.keys(languages) as Lang[]).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const modules = await getModules(lang);
+const phases = await getPhases(lang);
+---
+
+<Base title={t('nav.pathway')} description={t('home.path.body')}>
+  <section class="container-x py-14 md:py-20">
+    <p class="eyebrow">{t('nav.pathway')}</p>
+    <h1 class="mt-4 max-w-4xl font-clash text-4xl leading-[1.08] text-white md:text-6xl">
+      {t('home.path.title')}
+    </h1>
+    <p class="mt-6 max-w-2xl leading-[1.7] text-midgray">{t('home.path.body')}</p>
+
+    <div class="mt-10 max-w-xl">
+      <ProgressTracker total={modules.length} />
+    </div>
+  </section>
+
+  <!-- compact route map: the question each module answers -->
+  <section class="container-x pb-16">
+    <ol class="grid gap-2 md:grid-cols-3">
+      {
+        modules.map((m) => (
+          <li>
+            <a
+              href={localePath(lang, `modules/${m.data.route}`)}
+              class="flex h-full gap-4 rounded-xl border border-white/10 px-4 py-3 transition-colors hover:border-orange/60 hover:bg-black-light"
+            >
+              <span class="font-clash text-sm font-bold text-orange">{String(m.data.order).padStart(2, '0')}</span>
+              <span class="text-sm leading-snug text-ashgray">{m.data.question}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </section>
+
+  <section class="container-x space-y-16 pb-24">
+    {
+      phases.map(({ phase, modules: group }) => (
+        <div>
+          <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-white/10 pb-4">
+            <span class="font-clash text-sm font-bold tracking-[0.2em] text-orange uppercase">
+              {t('path.phase')} {phase}
+            </span>
+            <h2 class="font-clash text-2xl text-white md:text-3xl">{t((phaseKey(phase) + '.title') as UIKey)}</h2>
+            <p class="w-full text-sm text-midgray md:w-auto md:flex-1 md:text-right">
+              {t((phaseKey(phase) + '.goal') as UIKey)}
+            </p>
+          </div>
+
+          <div class="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+            {group.map((m) => (
+              <ModuleCard module={m} />
+            ))}
+          </div>
+        </div>
+      ))
+    }
+
+    <a
+      href={localePath(lang, 'capstone')}
+      class="group flex flex-col justify-between rounded-3xl bg-orange p-8 text-black transition-transform hover:scale-[1.005] md:p-12"
+    >
+      <p class="font-clash text-xs font-bold tracking-[0.2em] uppercase">{t('level.project')}</p>
+      <h2 class="mt-3 max-w-2xl font-clash text-3xl leading-tight md:text-5xl">{t('capstone.title')}</h2>
+      <p class="mt-5 max-w-2xl leading-relaxed text-black/80">{t('capstone.lede')}</p>
+      <span class="mt-8 font-bold transition-transform group-hover:translate-x-1">→</span>
+    </a>
+  </section>
+</Base>

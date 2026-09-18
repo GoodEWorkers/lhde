@@ -1,0 +1,348 @@
+---
+route: fhir
+lang: en
+order: 6
+phase: 3
+level: core
+title: HL7 FHIR in practice
+subtitle: The convergence point — and what it actually changes.
+outcome: >-
+  Explain what FHIR adds over HL7 v2 and CDA, read a FHIR resource and request, and situate FHIR
+  inside the European regulatory frame (EHDS).
+duration: 55
+question: Why is everyone converging on FHIR, and what does that imply?
+agenda:
+  - From HL7 v2 and CDA to FHIR — continuity, not rupture
+  - Resources, APIs and paradigms
+  - FHIR cooperates, it does not replace
+  - EHDS — interoperate, access, use
+  - Strengths and fragilities of a national ecosystem
+argus: >-
+  Argus runs on an off-board FHIR platform. Write the five FHIR requests that would feed the control
+  tower's landing screen — and say which of them should be replaced by a subscription.
+sources:
+  - Seminar “Standardise to transform — FHIR at the heart of medical IS modernisation”, French Military Health Service, 12 December 2025
+  - MCLB 5 and MCLB 7 (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## A useful detour: where the problem comes from
+
+Medical computing was born as an **administrative and legal** tool: meeting regulatory obligations,
+not supporting care. Uses were added by organic growth, one need after another — billing, bed
+management, operating theatre, imaging, laboratory, emergency — each with its own software, scope and
+interfaces.
+
+The result: an information system drifting into spaghetti architecture, data produced *after the
+fact* for reporting rather than for action, and professionals manually patching the digital gaps.
+
+<Callout variant="warning">
+The hospital information system as a **system of systems** remains largely unexamined. That
+conceptual gap, more than technology, explains the current state.
+</Callout>
+
+Digital technology moved into a new era without the hospital: web 2.0 and open platforms, the
+smartphone and IoT explosion, big data and AI everywhere else. Hospitals chose homogenisation over
+standardisation. Covid made the bill visible: laborious exchanges, spreadsheets, re-keying, and no
+reliable consolidated view of beds, tests or patient flows.
+
+FHIR was the first massive worldwide answer — the Covid vaccination campaign was its full-scale test.
+
+## From HL7 v2 and CDA to FHIR
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Heritage',
+      title: 'HL7 v2 and CDA',
+      tone: 'neutral',
+      points: [
+        'HL7 v2 for hospital messages, in use for decades.',
+        'CDA for structured clinical documents.',
+        'Designed in an older technical context: rigid models, awkward integration with the web.',
+      ],
+    },
+    {
+      label: 'Evolution',
+      title: 'HL7 FHIR',
+      tone: 'orange',
+      points: [
+        'Same philosophy: structure medical data.',
+        'New approach: APIs, modularity, web technology.',
+        'Continuity rather than rupture — FHIR extends, clarifies and unifies what exists.',
+      ],
+    },
+  ]}
+  caption="FHIR does not replace everything: it prepares what comes next, on 35 years of HL7 experience."
+/>
+
+## What FHIR actually changes
+
+<CardGrid
+  columns={2}
+  cards={[
+    {
+      tag: 'Web native',
+      title: 'HTTP(S), JSON, XML, REST',
+      body: 'The same building blocks used everywhere else in software. A web developer understands a FHIR API within hours.',
+    },
+    {
+      tag: 'API-first',
+      title: 'Every resource is a service',
+      body: 'Read, write, search: simple uniform calls, documented and versioned.',
+    },
+    {
+      tag: 'Resources',
+      title: 'Shared building blocks',
+      body: 'Patient, Observation, Condition, Encounter, Appointment… one model across all specialties.',
+    },
+    {
+      tag: 'Alignment',
+      title: 'Compatible with what exists',
+      body: 'Aligned with SNOMED, LOINC, DICOM, OMOP, openEHR. FHIR is a frame, not a substitute.',
+    },
+  ]}
+/>
+
+### Reading a FHIR interaction
+
+```http
+GET /Appointment?date=ge2026-09-18&date=le2026-09-19&status=booked
+     &_include=Appointment:location
+     &_count=200
+Accept: application/fhir+json
+```
+
+```json
+{
+  "resourceType": "Appointment",
+  "id": "a-10432",
+  "status": "booked",
+  "serviceType": [{
+    "coding": [{ "system": "http://snomed.info/sct", "code": "394914008", "display": "Radiology" }]
+  }],
+  "start": "2026-09-18T09:30:00+02:00",
+  "end": "2026-09-18T09:50:00+02:00",
+  "participant": [
+    { "actor": { "reference": "Patient/8821" }, "status": "accepted" },
+    { "actor": { "reference": "Location/mri-room-2" }, "status": "accepted" }
+  ]
+}
+```
+
+<Reveal question="Three things are still missing before you can tell whether Argus can use this resource. Which?">
+1. **Which profile** constrains it? Are `status`, `serviceType` and `participant` mandatory in your
+   context? (Profiling module)
+2. **Which ValueSet** binds `serviceType`, and with what binding strength? Without that, every silo
+   sends its own list. (Semantics module)
+3. **Which provenance**: who produced this instance, when, from which source, and who corrects it if
+   it is wrong? (Architecture module)
+</Reveal>
+
+## FHIR cooperates, it does not replace
+
+<StepFlow
+  caption="One standard to find them, to expose them, and — inside the hospital — to bind them."
+  steps={[
+    { title: 'Builds on', body: 'Existing reference sets: SNOMED, LOINC, UCUM, ICD, ATC.' },
+    { title: 'Integrates', body: 'Domain standards: DICOM for imaging, IHE for workflows, OMOP for research.' },
+    { title: 'Unifies', body: 'Creates a common API layer that allows them to be combined.' },
+    { title: 'Federates', body: 'FHIR is not competing: it is a modern frame for working together.' },
+    { title: 'Localises', body: 'Each country specialises the model through profiles while staying globally compatible.' },
+  ]}
+/>
+
+## EHDS: interoperability becomes an obligation
+
+The European Health Data Space is a structuring regulation with a very wide scope: all medical and
+medico-administrative software, all healthcare organisations, all actors in the care chain — and the
+citizen.
+
+<CardGrid
+  columns={3}
+  cards={[
+    {
+      tag: 'Interoperate',
+      title: 'Speak one language',
+      body: 'A common exchange format, compatibility across software, countries, vendors and organisations.',
+    },
+    {
+      tag: 'Access',
+      title: 'Guarantee direct access',
+      body: 'Every citizen must be able to consult and share their data, for themselves or a professional, anywhere in Europe.',
+    },
+    {
+      tag: 'Use',
+      title: 'Turn it into value',
+      body: 'Systems must enable clinical, organisational and scientific use of the data, secondary use staying regulated.',
+    },
+  ]}
+  caption="It applies to health data a normalisation already applied elsewhere."
+/>
+
+<Callout variant="key">
+EHDS moves the goalposts: interoperability stops being an improvement project and becomes a
+**condition of market access**.
+</Callout>
+
+## Strengths and fragilities — reading a national ecosystem
+
+The French case is instructive because it is typical: adoption blocked not by technology, but by an
+economic vicious circle — then unblocked from the field.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Brake #1',
+      title: 'Skills are missing',
+      tone: 'yellow',
+      points: [
+        'Few developers, architects and integrators trained on APIs and FHIR resources.',
+        'Weak command of modern tooling: FHIR servers, validation, API security, containers, continuous integration.',
+        'Data and semantic culture still emerging.',
+      ],
+    },
+    {
+      label: 'Brake #2',
+      title: 'The funding vicious circle',
+      tone: 'purple',
+      points: [
+        'No earmarked funding → organisations do not ask for it.',
+        'No demand → vendors do not implement it.',
+        'No supply → no justification to fund it. And round it goes.',
+      ],
+    },
+    {
+      label: 'Strength',
+      title: 'A bottom-up dynamic',
+      tone: 'orange',
+      points: [
+        'University hospitals pooled their work without waiting for a national frame.',
+        'A community of organisations produces implementation guides, tools and test strategies.',
+        'Real cross-border tests: patient summary transfer between European hospitals, translation of a discharge report.',
+      ],
+    },
+  ]}
+  caption="The transferable lesson: adopting a standard is an economics-and-skills problem before it is a specification problem."
+/>
+
+<Callout variant="reflect">
+In your context, what blocks first: the specification, the skills, or the funding? All three demand
+completely different actions.
+</Callout>
+
+## Activity — which FHIR paradigm?
+
+FHIR supports several paradigms. The choice rests on business criteria, exactly as in module 3.
+
+<MatchActivity
+  id="fhir-paradigm"
+  title="REST, document, message or bulk?"
+  instruction="For each need, choose the most suitable FHIR paradigm."
+  options={[
+    { id: 'rest', label: 'REST' },
+    { id: 'document', label: 'Document' },
+    { id: 'messaging', label: 'Messaging' },
+    { id: 'bulk', label: 'Bulk Data' },
+    { id: 'subscription', label: 'Subscription' },
+  ]}
+  items={[
+    {
+      text: 'A patient app displays upcoming appointments, on demand.',
+      answer: 'rest',
+      note: 'Point-in-time read and search: GET /Appointment with parameters.',
+    },
+    {
+      text: 'Produce a signed International Patient Summary shareable between two countries.',
+      answer: 'document',
+      note: 'FHIR Document Bundle: a stable, complete, auditable artefact.',
+    },
+    {
+      text: 'Extract five years of observations for an OMOP warehouse.',
+      answer: 'bulk',
+      note: 'FHIR Bulk Data / NDJSON: volume, no real-time constraint.',
+    },
+    {
+      text: 'Notify the control tower whenever a bed status changes, without it polling.',
+      answer: 'subscription',
+      note: 'Subscription: the server pushes the change to subscribers.',
+    },
+    {
+      text: 'Reproduce an existing ADT flow while keeping point-to-point event logic.',
+      answer: 'messaging',
+      note: 'FHIR Messaging: MessageHeader + Bundle, the modern counterpart of the HL7 v2 message.',
+    },
+  ]}
+/>
+
+## Mini quiz
+
+<Quiz
+  id="m6-quiz"
+  title="Four checks on FHIR"
+  questions={[
+    {
+      q: 'Does adopting FHIR make terminologies unnecessary?',
+      options: [
+        'Yes: FHIR defines the meaning of the data itself.',
+        'No: FHIR builds on SNOMED, LOINC, UCUM and existing reference sets.',
+        'Yes, except in imaging.',
+        'No, but only for research.',
+      ],
+      answer: 1,
+      explain:
+        'FHIR structures and exposes; meaning still comes from terminologies, bound to elements through bindings.',
+    },
+    {
+      q: 'Is a working FHIR API enough to meet EHDS obligations?',
+      options: [
+        'Yes, that is exactly what is required.',
+        'No: citizen access and the capability for clinical, organisational and scientific use are also required.',
+        'Yes, if it is hosted in Europe.',
+        'No: EHDS mandates no format at all.',
+      ],
+      answer: 1,
+      explain:
+        'EHDS sets three obligations: interoperate, access, use. The API alone only covers the first.',
+    },
+    {
+      q: 'Is FHIR competing with DICOM and openEHR?',
+      options: [
+        'Yes: it aims to replace them eventually.',
+        'No: it creates a common API layer that lets them be combined.',
+        'Yes for DICOM, no for openEHR.',
+        'The question does not arise: they never handle the same data.',
+      ],
+      answer: 1,
+      explain:
+        'FHIR is transversal. DICOM keeps imaging, openEHR keeps clinical modelling and persistence; FHIR federates exchange.',
+    },
+    {
+      q: 'According to the field feedback presented, what most limits a national ecosystem?',
+      options: [
+        'The maturity of the standard itself.',
+        'The availability of qualified people.',
+        'FHIR server performance.',
+        'The absence of a stable FHIR version.',
+      ],
+      answer: 1,
+      explain:
+        'The standard is mature and well tooled. The bottleneck is human: architects, integrators and semantic culture.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+FHIR is not "one more format". It is a **platform standard**: a shared data model, a uniform API, a
+family of paradigms, and an ecosystem of tools — servers, validators, SDKs, implementation guides.
+
+But a generic standard still leaves far too much freedom to guarantee real interoperability. The next
+module covers that missing layer: **profiling**.

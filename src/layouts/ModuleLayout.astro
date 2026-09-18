@@ -1,0 +1,153 @@
+---
+import Base from './Base.astro';
+import CompleteButton from '../components/CompleteButton.astro';
+import { getLangFromUrl, useTranslations, localePath } from '../i18n/utils';
+import { phaseKey, type ModuleEntry } from '../lib/modules';
+import type { UIKey } from '../i18n/ui';
+
+interface Props {
+  module: ModuleEntry;
+  prev?: ModuleEntry;
+  next?: ModuleEntry;
+  total: number;
+}
+
+const { module, prev, next, total } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const d = module.data;
+
+const levelLabel = {
+  intro: t('level.intro'),
+  core: t('level.core'),
+  advanced: t('level.advanced'),
+  project: t('level.project'),
+}[d.level];
+---
+
+<Base title={d.title} description={d.outcome}>
+  <article>
+    <!-- ── module header ─────────────────────────────────────────── -->
+    <header class="border-b border-white/10 bg-black-light">
+      <div class="container-x py-12 md:py-16">
+        <nav class="flex flex-wrap items-center gap-2 text-xs text-midgray" aria-label="Breadcrumb">
+          <a href={localePath(lang, 'modules')} class="font-bold text-orange hover:underline">{t('nav.pathway')}</a>
+          <span aria-hidden="true">/</span>
+          <span>{t('path.phase')} {d.phase} — {t(phaseKey(d.phase) + '.title' as UIKey)}</span>
+        </nav>
+
+        <div class="mt-6 flex flex-wrap items-baseline gap-x-6 gap-y-2">
+          <p class="font-clash text-6xl leading-none font-bold text-orange md:text-7xl">
+            {String(d.order).padStart(2, '0')}
+          </p>
+          <div class="flex flex-wrap items-center gap-3 text-xs">
+            <span class="rounded-full border border-white/25 px-3 py-1 font-bold text-ashgray uppercase">
+              {levelLabel}
+            </span>
+            <span class="text-midgray">{d.duration} min</span>
+            <span class="text-midgray" aria-hidden="true">·</span>
+            <span class="text-midgray">{t('module.number')} {d.order} {t('module.of')} {total}</span>
+          </div>
+        </div>
+
+        <h1 class="mt-4 max-w-4xl font-clash text-4xl leading-[1.08] text-white md:text-5xl lg:text-6xl">
+          {d.title}
+        </h1>
+        <p class="mt-4 max-w-2xl text-lg text-midgray">{d.subtitle}</p>
+
+        <div class="mt-10 grid gap-8 lg:grid-cols-[1.2fr_1fr]">
+          <div class="rounded-2xl border-l-4 border-orange bg-black px-6 py-5">
+            <p class="eyebrow">{t('module.outcome')}</p>
+            <p class="mt-2 text-lg leading-relaxed text-white">{d.outcome}</p>
+          </div>
+
+          <div class="rounded-2xl bg-black px-6 py-5">
+            <p class="eyebrow text-purple">{t('module.agenda')}</p>
+            <ol class="mt-3 space-y-1.5 text-sm text-ashgray">
+              {
+                d.agenda.map((item, i) => (
+                  <li class="flex gap-3">
+                    <span class="font-clash font-bold text-midgray">{i + 1}</span>
+                    <span>{item}</span>
+                  </li>
+                ))
+              }
+            </ol>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- ── module body ───────────────────────────────────────────── -->
+    <div class="container-x py-14 md:py-20">
+      <div class="prose-interop mx-auto max-w-3xl">
+        <slot />
+      </div>
+
+      <!-- Argus thread reminder -->
+      <aside class="mx-auto mt-16 max-w-3xl rounded-2xl border border-purple/30 bg-black-light p-6 md:p-8">
+        <p class="eyebrow text-purple">{t('nav.case')} — Argus</p>
+        <p class="mt-3 leading-relaxed text-ashgray">{d.argus}</p>
+        <a href={localePath(lang, 'argus')} class="mt-5 inline-block text-sm font-bold text-purple hover:underline">
+          {t('home.thread.cta')} →
+        </a>
+      </aside>
+
+      <!-- completion + sources -->
+      <div class="mx-auto mt-12 flex max-w-3xl flex-wrap items-center gap-4">
+        <CompleteButton slug={d.route} />
+        <a href={localePath(lang, 'modules')} class="text-sm font-bold text-midgray hover:text-orange">
+          ← {t('module.back')}
+        </a>
+      </div>
+
+      {
+        d.sources.length > 0 && (
+          <div class="mx-auto mt-10 max-w-3xl border-t border-white/10 pt-6">
+            <p class="font-clash text-xs tracking-widest text-midgray uppercase">{t('module.source')}</p>
+            <ul class="mt-2 space-y-1 text-xs text-midgray">
+              {d.sources.map((s) => (
+                <li>{s}</li>
+              ))}
+            </ul>
+          </div>
+        )
+      }
+    </div>
+
+    <!-- ── prev / next ───────────────────────────────────────────── -->
+    <nav class="border-t border-white/10 bg-black-light" aria-label={t('nav.modules')}>
+      <div class="container-x grid gap-px py-10 md:grid-cols-2">
+        {
+          prev ? (
+            <a href={localePath(lang, `modules/${prev.data.route}`)} class="group rounded-2xl p-6 hover:bg-black">
+              <p class="text-xs font-bold tracking-widest text-midgray uppercase">← {t('module.prev')}</p>
+              <p class="mt-2 font-clash text-xl text-white group-hover:text-orange">{prev.data.title}</p>
+            </a>
+          ) : (
+            <span />
+          )
+        }
+        {
+          next && (
+            <a
+              href={localePath(lang, `modules/${next.data.route}`)}
+              class="group rounded-2xl p-6 text-right hover:bg-black"
+            >
+              <p class="text-xs font-bold tracking-widest text-midgray uppercase">{t('module.next')} →</p>
+              <p class="mt-2 font-clash text-xl text-white group-hover:text-orange">{next.data.title}</p>
+            </a>
+          )
+        }
+        {
+          !next && (
+            <a href={localePath(lang, 'capstone')} class="group rounded-2xl p-6 text-right hover:bg-black">
+              <p class="text-xs font-bold tracking-widest text-midgray uppercase">{t('module.next')} →</p>
+              <p class="mt-2 font-clash text-xl text-white group-hover:text-orange">{t('capstone.title')}</p>
+            </a>
+          )
+        }
+      </div>
+    </nav>
+  </article>
+</Base>

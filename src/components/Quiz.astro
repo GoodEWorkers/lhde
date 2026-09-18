@@ -1,0 +1,165 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+export interface QuizQuestion {
+  /** The question stem. */
+  q: string;
+  /** Answer options, in display order. */
+  options: string[];
+  /** Zero-based index of the correct option. */
+  answer: number;
+  /** Shown after checking — the reasoning, not just the verdict. */
+  explain: string;
+}
+
+interface Props {
+  id: string;
+  questions: QuizQuestion[];
+  title?: string;
+}
+
+const { id, questions, title } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const labels = {
+  check: t('quiz.check'),
+  retry: t('quiz.retry'),
+  correct: t('quiz.correct'),
+  incorrect: t('quiz.incorrect'),
+  score: t('quiz.score'),
+  explanation: t('quiz.explanation'),
+};
+---
+
+<section
+  class="not-prose my-12 rounded-2xl border border-orange/30 bg-black-light p-6 md:p-8"
+  data-quiz
+  data-quiz-id={id}
+  aria-labelledby={`${id}-title`}
+>
+  <p class="eyebrow">{t('quiz.title')}</p>
+  <h3 id={`${id}-title`} class="mt-2 font-clash text-2xl text-white md:text-3xl">
+    {title ?? t('quiz.title')}
+  </h3>
+  <p class="mt-3 max-w-2xl text-sm text-midgray">{t('quiz.intro')}</p>
+
+  <ol class="mt-8 space-y-8">
+    {
+      questions.map((question, qi) => (
+        <li class="border-t border-white/10 pt-6" data-question data-answer={question.answer}>
+          <fieldset>
+            <legend class="font-bold text-white">
+              <span class="mr-2 text-orange">
+                {t('quiz.question')} {qi + 1}.
+              </span>
+              {question.q}
+            </legend>
+
+            <div class="mt-4 grid gap-2">
+              {question.options.map((option, oi) => (
+                <label
+                  class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-black-soft px-4 py-3 text-sm transition-colors hover:border-orange/60 has-checked:border-orange"
+                  data-option
+                  data-index={oi}
+                >
+                  <input
+                    type="radio"
+                    name={`${id}-q${qi}`}
+                    value={oi}
+                    class="mt-0.5 h-4 w-4 shrink-0 accent-[#FD5E09]"
+                  />
+                  <span class="text-ashgray">{option}</span>
+                  <span class="ml-auto hidden shrink-0 text-lg leading-none" data-mark aria-hidden="true" />
+                </label>
+              ))}
+            </div>
+          </fieldset>
+
+          <p
+            class="mt-4 hidden rounded-xl border-l-4 border-purple bg-black-soft px-4 py-3 text-sm text-ashgray"
+            data-explain
+          >
+            <span class="font-bold text-purple">{labels.explanation} — </span>
+            {question.explain}
+          </p>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="mt-8 flex flex-wrap items-center gap-4">
+    <button type="button" class="pill-orange text-sm" data-check>{labels.check}</button>
+    <button type="button" class="pill-ghost hidden text-sm" data-retry>{labels.retry}</button>
+    <p class="font-clash text-lg text-white" data-score hidden></p>
+  </div>
+
+  <template data-labels
+    data-correct={labels.correct}
+    data-incorrect={labels.incorrect}
+    data-score-label={labels.score}></template>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-quiz]').forEach((quiz) => {
+    const labels = quiz.querySelector<HTMLElement>('[data-labels]')!;
+    const scoreLabel = labels.dataset.scoreLabel ?? 'Score';
+    const check = quiz.querySelector<HTMLButtonElement>('[data-check]')!;
+    const retry = quiz.querySelector<HTMLButtonElement>('[data-retry]')!;
+    const scoreEl = quiz.querySelector<HTMLElement>('[data-score]')!;
+    const questions = [...quiz.querySelectorAll<HTMLElement>('[data-question]')];
+
+    const clear = () => {
+      questions.forEach((q) => {
+        q.querySelectorAll<HTMLElement>('[data-option]').forEach((opt) => {
+          opt.classList.remove('border-emerald-400', 'border-red-400', 'bg-emerald-400/10', 'bg-red-400/10');
+          const mark = opt.querySelector<HTMLElement>('[data-mark]')!;
+          mark.classList.add('hidden');
+          mark.textContent = '';
+        });
+        q.querySelector<HTMLElement>('[data-explain]')!.classList.add('hidden');
+        q.querySelectorAll<HTMLInputElement>('input').forEach((i) => (i.checked = false));
+      });
+      scoreEl.hidden = true;
+      retry.classList.add('hidden');
+      check.classList.remove('hidden');
+    };
+
+    check.addEventListener('click', () => {
+      let right = 0;
+
+      questions.forEach((q) => {
+        const answer = Number(q.dataset.answer);
+        const picked = q.querySelector<HTMLInputElement>('input:checked');
+        if (picked && Number(picked.value) === answer) right += 1;
+
+        q.querySelectorAll<HTMLElement>('[data-option]').forEach((opt) => {
+          const index = Number(opt.dataset.index);
+          const mark = opt.querySelector<HTMLElement>('[data-mark]')!;
+          const chosen = picked !== null && Number(picked.value) === index;
+
+          if (index === answer) {
+            opt.classList.add('border-emerald-400', 'bg-emerald-400/10');
+            mark.textContent = '✓';
+            mark.classList.remove('hidden');
+            mark.classList.add('text-emerald-400');
+          } else if (chosen) {
+            opt.classList.add('border-red-400', 'bg-red-400/10');
+            mark.textContent = '✕';
+            mark.classList.remove('hidden');
+            mark.classList.add('text-red-400');
+          }
+        });
+
+        q.querySelector<HTMLElement>('[data-explain]')!.classList.remove('hidden');
+      });
+
+      scoreEl.textContent = `${scoreLabel} : ${right}/${questions.length}`;
+      scoreEl.hidden = false;
+      check.classList.add('hidden');
+      retry.classList.remove('hidden');
+    });
+
+    retry.addEventListener('click', clear);
+  });
+</script>

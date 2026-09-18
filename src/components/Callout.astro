@@ -1,0 +1,34 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+type Variant = 'key' | 'warning' | 'activity' | 'example' | 'reflect';
+
+interface Props {
+  variant?: Variant;
+  title?: string;
+}
+
+const { variant = 'key', title } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+
+const style: Record<Variant, { border: string; accent: string; label: string; icon: string }> = {
+  key: { border: 'border-orange', accent: 'text-orange', label: t('keyidea.label'), icon: '◆' },
+  warning: { border: 'border-yellow', accent: 'text-yellow', label: t('warning.label'), icon: '▲' },
+  activity: { border: 'border-purple', accent: 'text-purple', label: t('activity.label'), icon: '●' },
+  example: { border: 'border-white/40', accent: 'text-white', label: t('example.label'), icon: '▸' },
+  reflect: { border: 'border-purple', accent: 'text-purple', label: t('reflect.label'), icon: '?' },
+};
+
+const s = style[variant];
+---
+
+<aside class={`not-prose my-10 rounded-r-2xl border-l-4 bg-black-light px-6 py-5 ${s.border}`}>
+  <p class={`flex items-center gap-2 font-clash text-sm font-bold tracking-[0.16em] uppercase ${s.accent}`}>
+    <span aria-hidden="true">{s.icon}</span>
+    {title ?? s.label}
+  </p>
+  <div class="mt-3 text-[0.95rem] leading-relaxed text-ashgray [&>*+*]:mt-3 [&_strong]:text-white">
+    <slot />
+  </div>
+</aside>

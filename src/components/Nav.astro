@@ -1,0 +1,130 @@
+---
+import Logo from './Logo.astro';
+import { getLangFromUrl, useTranslations, localePath, switchLocalePath, languages, type Lang } from '../i18n/utils';
+
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+const here = Astro.url.pathname.replace(/\/$/, '');
+
+const links = [
+  { href: localePath(lang, 'modules'), label: t('nav.pathway') },
+  { href: localePath(lang, 'argus'), label: t('nav.case') },
+  { href: localePath(lang, 'capstone'), label: t('nav.capstone') },
+  { href: localePath(lang, 'glossary'), label: t('nav.glossary') },
+  { href: localePath(lang, 'resources'), label: t('nav.resources') },
+];
+
+const isActive = (href: string) => here === href || here.startsWith(href + '/');
+---
+
+<div class="sticky inset-x-0 top-0 z-50 bg-black/95 backdrop-blur-sm" data-navbar>
+  <nav
+    class="container-x flex items-center justify-between py-3 md:py-4"
+    aria-label={t('nav.menu')}
+  >
+    <a href={localePath(lang)} aria-label={t('nav.home_aria')} class="shrink-0">
+      <Logo />
+    </a>
+
+    <!-- desktop -->
+    <div class="hidden items-center gap-7 lg:flex">
+      {
+        links.map((l) => (
+          <a
+            href={l.href}
+            aria-current={isActive(l.href) ? 'page' : undefined}
+            class:list={[
+              'border-b-2 pb-1 text-sm font-bold transition-colors duration-200',
+              isActive(l.href) ? 'border-orange text-orange' : 'border-transparent text-grey/60 hover:text-grey',
+            ]}
+          >
+            {l.label}
+          </a>
+        ))
+      }
+      <div class="flex items-center gap-1 pl-2" role="group" aria-label={t('lang.switch')}>
+        {
+          (Object.keys(languages) as Lang[]).map((l) => (
+            <a
+              href={switchLocalePath(Astro.url, l)}
+              hreflang={l}
+              aria-current={l === lang ? 'true' : undefined}
+              class:list={[
+                'rounded-full border-2 px-3 py-1 text-xs font-bold uppercase transition-colors duration-200',
+                l === lang
+                  ? 'border-orange bg-orange text-black'
+                  : 'border-orange/40 text-orange hover:bg-orange hover:text-black',
+              ]}
+            >
+              {l}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    <!-- mobile toggle -->
+    <button
+      type="button"
+      class="relative z-50 lg:hidden"
+      aria-expanded="false"
+      aria-controls="mobile-menu"
+      aria-label={t('nav.menu')}
+      data-menu-button
+    >
+      <span class="relative flex h-[26px] w-[26px] flex-col">
+        <span class="bar-top absolute inset-x-0 top-0 h-[2px] w-[24px] origin-left rounded-full bg-yellow transition-all duration-150"></span>
+        <span class="bar-mid absolute inset-x-0 top-[11px] h-[2px] w-[24px] rounded-full bg-orange transition-opacity duration-150"></span>
+        <span class="bar-bot absolute inset-x-0 top-[22px] h-[2px] w-[24px] origin-left rounded-full bg-purple transition-all duration-150"></span>
+      </span>
+    </button>
+  </nav>
+
+  <!-- mobile panel -->
+  <div id="mobile-menu" class="hidden border-t border-white/10 bg-black lg:hidden" data-menu-panel>
+    <ul class="container-x flex flex-col py-4">
+      {
+        links.map((l) => (
+          <li class="py-3">
+            <a
+              href={l.href}
+              class:list={['block text-lg font-bold', isActive(l.href) ? 'text-orange' : 'text-grey hover:text-orange']}
+            >
+              {l.label}
+            </a>
+          </li>
+        ))
+      }
+      <li class="flex gap-2 pt-4">
+        {
+          (Object.keys(languages) as Lang[]).map((l) => (
+            <a
+              href={switchLocalePath(Astro.url, l)}
+              hreflang={l}
+              class:list={[
+                'rounded-full border-2 px-4 py-1.5 text-sm font-bold uppercase',
+                l === lang ? 'border-orange bg-orange text-black' : 'border-orange/40 text-orange',
+              ]}
+            >
+              {languages[l]}
+            </a>
+          ))
+        }
+      </li>
+    </ul>
+  </div>
+</div>
+
+<script>
+  const btn = document.querySelector<HTMLButtonElement>('[data-menu-button]');
+  const panel = document.querySelector<HTMLElement>('[data-menu-panel]');
+
+  btn?.addEventListener('click', () => {
+    const open = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!open));
+    panel?.classList.toggle('hidden', open);
+    btn.querySelector('.bar-top')?.classList.toggle('rotate-45', !open);
+    btn.querySelector('.bar-mid')?.classList.toggle('opacity-0', !open);
+    btn.querySelector('.bar-bot')?.classList.toggle('-rotate-45', !open);
+  });
+</script>

@@ -1,0 +1,168 @@
+---
+import Base from '../../layouts/Base.astro';
+import ModuleCard from '../../components/ModuleCard.astro';
+import ProgressTracker from '../../components/ProgressTracker.astro';
+import { languages, useTranslations, localePath, type Lang } from '../../i18n/utils';
+import { getModules, getPhases, phaseKey } from '../../lib/modules';
+import { principles } from '../../data/principles';
+import type { UIKey } from '../../i18n/ui';
+
+export function getStaticPaths() {
+  return (Object.keys(languages) as Lang[]).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const modules = await getModules(lang);
+const phases = await getPhases(lang);
+const first = modules[0];
+
+const stats = [
+  { value: String(modules.length), label: t('home.stats.modules') },
+  { value: '20+', label: t('home.stats.activities') },
+  { value: '3', label: t('home.stats.hours') },
+  { value: '2', label: t('home.stats.languages') },
+];
+---
+
+<Base>
+  <!-- ── hero ──────────────────────────────────────────────────────── -->
+  <section class="container-x pt-12 pb-20 md:pt-20 md:pb-28">
+    <p class="eyebrow text-center">{t('hero.eyebrow')}</p>
+    <h1
+      class="mx-auto mt-6 max-w-5xl text-center font-clash text-4xl leading-[1.08] text-white md:text-6xl lg:text-7xl"
+    >
+      {t('hero.title')}
+    </h1>
+    <p class="mx-auto mt-8 max-w-2xl text-center text-base leading-[1.7] text-midgray md:text-lg">
+      {t('hero.lede')}
+    </p>
+    <p class="mx-auto mt-4 max-w-2xl text-center text-sm font-bold text-ashgray">{t('hero.sub')}</p>
+
+    <div class="mt-12 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-6">
+      <a href={localePath(lang, `modules/${first.data.route}`)} class="pill-orange w-full max-w-[320px] sm:w-auto">
+        {t('hero.cta.start')}
+      </a>
+      <a href={localePath(lang, 'modules')} class="pill-ghost w-full max-w-[320px] sm:w-auto">
+        {t('hero.cta.map')}
+      </a>
+    </div>
+
+    <dl class="mx-auto mt-16 grid max-w-3xl grid-cols-2 gap-3 md:grid-cols-4">
+      {
+        stats.map((s) => (
+          <div class="rounded-2xl bg-black-light px-4 py-6 text-center">
+            <dt class="sr-only">{s.label}</dt>
+            <dd>
+              <span class="block font-clash text-4xl font-bold text-orange">{s.value}</span>
+              <span class="mt-1 block text-xs leading-snug text-midgray">{s.label}</span>
+            </dd>
+          </div>
+        ))
+      }
+    </dl>
+  </section>
+
+  <!-- ── why a pathway ─────────────────────────────────────────────── -->
+  <section class="bg-white py-20 text-black md:py-28">
+    <div class="container-x">
+      <div class="grid gap-12 lg:grid-cols-[1fr_1.1fr] lg:gap-20">
+        <div>
+          <h2 class="font-clash text-3xl leading-tight md:text-5xl">{t('home.why.title')}</h2>
+          <p class="mt-8 max-w-xl leading-[1.7] text-black/75">{t('home.why.body')}</p>
+          <h3 class="mt-12 font-clash text-xl text-orange uppercase">{t('home.principles.title')}</h3>
+        </div>
+
+        <ul class="grid gap-3 sm:grid-cols-2">
+          {
+            principles[lang].map((p) => (
+              <li class="rounded-2xl bg-grey p-6">
+                <p class="font-clash text-xs font-bold tracking-[0.18em] text-orange uppercase">{p.tag}</p>
+                <h4 class="mt-2 font-clash text-lg">{p.title}</h4>
+                <p class="mt-3 text-sm leading-relaxed text-black/70">{p.body}</p>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── pathway map ───────────────────────────────────────────────── -->
+  <section class="container-x py-20 md:py-28">
+    <div class="max-w-3xl">
+      <p class="eyebrow">{t('nav.pathway')}</p>
+      <h2 class="mt-3 font-clash text-3xl leading-tight text-white md:text-5xl">{t('home.path.title')}</h2>
+      <p class="mt-6 leading-[1.7] text-midgray">{t('home.path.body')}</p>
+    </div>
+
+    <div class="mt-14 space-y-14">
+      {
+        phases.map(({ phase, modules: group }) => (
+          <div>
+            <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1 border-b border-white/10 pb-4">
+              <span class="font-clash text-sm font-bold tracking-[0.2em] text-orange uppercase">
+                {t('path.phase')} {phase}
+              </span>
+              <h3 class="font-clash text-2xl text-white">{t((phaseKey(phase) + '.title') as UIKey)}</h3>
+              <p class="w-full text-sm text-midgray md:w-auto md:flex-1 md:text-right">
+                {t((phaseKey(phase) + '.goal') as UIKey)}
+              </p>
+            </div>
+
+            <div class="mt-6 grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+              {group.map((m) => (
+                <ModuleCard module={m} />
+              ))}
+            </div>
+          </div>
+        ))
+      }
+    </div>
+
+    <div class="mt-16 grid gap-3 lg:grid-cols-[1fr_1fr]">
+      <ProgressTracker total={modules.length} />
+
+      <a
+        href={localePath(lang, 'capstone')}
+        class="group flex flex-col justify-between rounded-2xl bg-orange p-6 text-black transition-transform hover:scale-[1.01] md:p-8"
+      >
+        <div>
+          <p class="font-clash text-xs font-bold tracking-[0.2em] uppercase">{t('level.project')}</p>
+          <h3 class="mt-3 font-clash text-2xl leading-tight md:text-3xl">{t('capstone.title')}</h3>
+          <p class="mt-4 max-w-md text-sm leading-relaxed text-black/80">{t('capstone.lede')}</p>
+        </div>
+        <span class="mt-6 font-bold transition-transform group-hover:translate-x-1">→</span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ── running case ──────────────────────────────────────────────── -->
+  <section class="container-x pb-24">
+    <div class="rounded-3xl bg-black-light p-8 md:p-14">
+      <div class="grid items-center gap-10 lg:grid-cols-2">
+        <div>
+          <p class="eyebrow text-purple">{t('nav.case')}</p>
+          <h2 class="mt-3 font-clash text-3xl leading-tight text-white md:text-4xl">{t('home.thread.title')}</h2>
+          <p class="mt-6 leading-[1.7] text-midgray">{t('home.thread.body')}</p>
+          <a href={localePath(lang, 'argus')} class="pill-purple mt-8 text-sm">{t('home.thread.cta')}</a>
+        </div>
+
+        <ul class="grid grid-cols-2 gap-2 sm:grid-cols-3">
+          {
+            ['Patient', 'Encounter', 'Appointment', 'Practitioner', 'Location', 'Device'].map((r, i) => (
+              <li
+                class:list={[
+                  'flex aspect-square items-center justify-center rounded-2xl p-3 text-center font-clash text-sm md:text-base',
+                  i === 2 ? 'bg-orange text-black' : 'bg-black text-ashgray',
+                ]}
+              >
+                {r}
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+  </section>
+</Base>

@@ -1,0 +1,80 @@
+---
+/**
+ * Interactive ReEIF stack. Each layer expands to show what it decides,
+ * who owns it, and what typically breaks there. Clicking a layer is the
+ * whole point: the learner chooses the order of exploration.
+ */
+import { getLangFromUrl } from '../i18n/utils';
+
+export interface Layer {
+  id: string;
+  name: string;
+  question: string;
+  detail: string;
+  actors: string;
+  failure: string;
+}
+
+interface Props {
+  layers: Layer[];
+  caption?: string;
+}
+
+const { layers, caption } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const heads =
+  lang === 'fr'
+    ? { actors: 'Qui décide', failure: 'Ce qui casse ici' }
+    : { actors: 'Who decides', failure: 'What breaks here' };
+
+// Warm at the top (policy) → cool at the bottom (infrastructure).
+const tints = [
+  'border-l-orange',
+  'border-l-yellow',
+  'border-l-purple',
+  'border-l-[#7fb3d5]',
+  'border-l-[#6fcf97]',
+  'border-l-midgray',
+];
+---
+
+<div class="not-prose my-12" data-layerstack>
+  <ol class="space-y-2">
+    {
+      layers.map((layer, i) => (
+        <li>
+          <details class={`group rounded-xl border-l-4 bg-black-light ${tints[i % tints.length]}`}>
+            <summary class="flex cursor-pointer list-none items-center gap-4 px-5 py-4 [&::-webkit-details-marker]:hidden">
+              <span class="font-clash text-sm font-bold text-midgray">{String(layers.length - i).padStart(2, '0')}</span>
+              <span class="flex-1">
+                <span class="block font-clash text-lg text-white">{layer.name}</span>
+                <span class="block text-sm text-midgray">{layer.question}</span>
+              </span>
+              <span
+                class="shrink-0 font-clash text-xl text-orange transition-transform duration-200 group-open:rotate-45"
+                aria-hidden="true"
+              >
+                +
+              </span>
+            </summary>
+
+            <div class="border-t border-white/10 px-5 pt-4 pb-5 text-sm leading-relaxed text-ashgray">
+              <p>{layer.detail}</p>
+              <dl class="mt-4 grid gap-3 sm:grid-cols-2">
+                <div>
+                  <dt class="font-clash text-xs tracking-widest text-purple uppercase">{heads.actors}</dt>
+                  <dd class="mt-1">{layer.actors}</dd>
+                </div>
+                <div>
+                  <dt class="font-clash text-xs tracking-widest text-yellow uppercase">{heads.failure}</dt>
+                  <dd class="mt-1">{layer.failure}</dd>
+                </div>
+              </dl>
+            </div>
+          </details>
+        </li>
+      ))
+    }
+  </ol>
+  {caption && <p class="mt-4 text-center text-sm text-midgray italic">{caption}</p>}
+</div>

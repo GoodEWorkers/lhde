@@ -1,0 +1,363 @@
+---
+route: foundations
+lang: fr
+order: 1
+phase: 1
+level: intro
+title: Interopérabilité en santé & ReEIF
+subtitle: Nommer le problème avant de proposer une solution.
+outcome: >-
+  Identifier les principales dimensions de l’interopérabilité en santé et classer un problème
+  d’interopérabilité à l’aide du Refined eHealth European Interoperability Framework.
+duration: 45
+question: Pourquoi deux systèmes qui « se parlent » ne sont-ils toujours pas interopérables ?
+agenda:
+  - Pourquoi l’interopérabilité en santé est difficile
+  - Opérabilité, interopérabilité étroite, interopérabilité large
+  - Les six couches du ReEIF
+  - Lire un problème réel couche par couche
+  - Du cas d’usage à l’implémentation
+argus: >-
+  Argus doit agréger identités, séjours, agendas, structures et matériel. Avant d’écrire la moindre
+  ligne de code, listez pour une seule de ces sources les six couches ReEIF : laquelle est aujourd’hui
+  la plus floue dans votre établissement ?
+sources:
+  - MCLB 1 — Interopérabilité en santé & ReEIF (XiA Educathon, Fyrstain)
+  - eHealth Network, Refined eHealth European Interoperability Framework, Bruxelles, 23 novembre 2015
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import LayerStack from '../../../components/LayerStack.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## Le piège du premier jour
+
+Un projet d’interopérabilité commence presque toujours de la même façon : deux équipes se
+retrouvent autour d’une table, s’accordent sur un format, ouvrent un flux, constatent que le
+message passe — et déclarent le projet réussi.
+
+Six mois plus tard, personne n’utilise la donnée. Elle arrive, elle est valide, et elle ne sert à
+rien. Ce module existe pour vous éviter ce scénario, en vous donnant le vocabulaire qui permet de
+dire **où exactement** un échange échoue.
+
+## Pourquoi l’interopérabilité en santé est difficile
+
+La santé n’est pas un domaine technique compliqué. C’est un domaine **socio-technique complexe** :
+les données y sont indissociables des processus de soin et des responsabilités.
+
+<CardGrid
+  columns={3}
+  cards={[
+    {
+      tag: 'Acteurs',
+      title: 'Beaucoup de monde, peu de hiérarchie',
+      body: 'Hôpitaux, laboratoires, pharmacies, patients, assureurs, autorités. Chacun a ses obligations propres, et personne ne commande aux autres.',
+    },
+    {
+      tag: 'Sens',
+      title: 'Beaucoup de sens possibles',
+      body: 'Termes cliniques, codes locaux, unités, versions. Une valeur seule ne veut rien dire : elle n’existe que dans un contexte.',
+    },
+    {
+      tag: 'Workflows',
+      title: 'Beaucoup de trajectoires',
+      body: 'Parcours de soin, orientations, comptes rendus, alertes. La même donnée peut déclencher des actions différentes selon qui la reçoit.',
+    },
+  ]}
+  caption="En santé, l’échange de données est indissociable des processus de soin et des responsabilités."
+/>
+
+<Callout variant="key">
+Un échange techniquement parfait entre deux systèmes qui n’ont pas le même besoin métier ne produit
+aucune valeur. **La difficulté n’est pas de transporter, c’est de s’aligner.**
+</Callout>
+
+## Trois mots qu’il ne faut pas confondre
+
+Le cadre européen distingue soigneusement trois notions. Les mélanger est la cause la plus fréquente
+de malentendu entre une direction métier et une DSI.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Niveau 0',
+      title: 'Opérabilité',
+      tone: 'neutral',
+      points: [
+        'La façon dont une organisation fonctionne chez elle : ses processus, ses structures de données, ses règles.',
+        'Chaque établissement est opérable dans son propre monde — sans que cela ne dise rien des autres.',
+      ],
+    },
+    {
+      label: 'Niveau 1',
+      title: 'Interopérabilité étroite',
+      tone: 'yellow',
+      points: [
+        'Les systèmes numériques communiquent.',
+        'Les protocoles et formats de données sont compatibles.',
+        'Le focus est principalement technique : réseau, format, transport.',
+      ],
+    },
+    {
+      label: 'Niveau 2',
+      title: 'Interopérabilité large',
+      tone: 'orange',
+      points: [
+        'Des organisations travaillent ensemble vers un objectif commun.',
+        'L’information est partagée, comprise et utilisée pour la finalité prévue.',
+        'Les personnes, les workflows et la gouvernance sont alignés.',
+      ],
+    },
+  ]}
+  caption="La santé a besoin d’interopérabilité large. L’interopérabilité étroite n’en est qu’un prérequis."
+/>
+
+La définition retenue par le cadre européen est explicite sur ce point :
+
+> L’interopérabilité est la capacité d’organisations disparates et diverses à interagir vers des
+> objectifs communs, mutuellement bénéfiques et convenus, impliquant le partage d’informations et de
+> connaissances entre ces organisations, à travers les processus métier qu’elles soutiennent, au
+> moyen de l’échange de données entre leurs systèmes d’information respectifs.
+
+Relisez la phrase à l’envers : l’échange de données arrive **en dernier**. C’est un moyen, pas
+l’objectif.
+
+## Les six couches du ReEIF
+
+Le *Refined eHealth European Interoperability Framework* (ReEIF) a été adopté par l’eHealth Network
+en novembre 2015. Il part du cadre européen générique à quatre niveaux et en scinde deux :
+
+- le niveau **organisationnel** devient *Politique / gouvernance* et *Processus de soin*, parce que
+  ces deux plans mobilisent des acteurs et des responsabilités différents ;
+- le niveau **technique** devient *Applications* (technologies spécifiques à la santé) et
+  *Infrastructure SI* (technologies génériques), parce qu’ils obéissent à des classes de standards
+  différentes.
+
+Résultat : six couches. Dépliez-les dans l’ordre qui vous parle — mais lisez les six.
+
+<LayerStack
+  caption="Le ReEIF est utile parce qu’il rend visibles les dimensions cachées d’un échange."
+  layers={[
+    {
+      id: 'legal',
+      name: 'Juridique et réglementaire',
+      question: 'Avons-nous le droit d’échanger et de traiter ces données ?',
+      detail:
+        'Législations et recommandations réglementaires compatibles, qui définissent les limites de l’interopérabilité entre pays, mais aussi à l’intérieur d’un pays ou d’une région.',
+      actors: 'Législateur, autorités de santé, DPO, juristes.',
+      failure:
+        'Le flux est techniquement prêt mais la finalité du traitement n’est pas couverte par une base légale. Le projet s’arrête à trois semaines de la mise en production.',
+    },
+    {
+      id: 'policy',
+      name: 'Politique / gouvernance',
+      question: 'Qui est responsable de quoi, et pourquoi ?',
+      detail:
+        'Contrats et accords entre organisations. La finalité et la valeur de la collaboration sont posées, la confiance et les responsabilités formalisées, la gouvernance ancrée dans des documents.',
+      actors: 'Directions, gouvernance de la donnée, RSSI, éditeurs signataires.',
+      failure:
+        'Une erreur de données arrive en production et personne ne sait qui la corrige. Les exceptions deviennent la norme.',
+    },
+    {
+      id: 'care',
+      name: 'Processus de soin',
+      question: 'Quand l’information est-elle nécessaire et quelle action suit ?',
+      detail:
+        'Une fois l’accord posé, les processus de soin sont analysés et alignés : parcours intégrés et workflows partagés. C’est le workflow partagé qui prescrit quelle information est nécessaire.',
+      actors: 'Médecins, soignants, cadres de santé, responsables métier.',
+      failure:
+        'L’alerte arrive, elle est correcte, et personne ne sait qui doit agir ni dans quel délai.',
+    },
+    {
+      id: 'information',
+      name: 'Information',
+      question: 'Partageons-nous le même sens, les mêmes unités, les mêmes codes ?',
+      detail:
+        'Description fonctionnelle du modèle de données, des éléments de données (concepts et valeurs possibles) et de leur rattachement aux terminologies.',
+      actors: 'Analystes métier, experts terminologie, modélisateurs.',
+      failure:
+        'Le récepteur lit « K = 4.2 » sans savoir de quel potassium, de quel prélèvement ni de quelle unité il s’agit.',
+    },
+    {
+      id: 'applications',
+      name: 'Applications',
+      question: 'Quel message, API, profil ou document est utilisé ?',
+      detail:
+        'Accords sur la façon dont les systèmes d’information importent et exportent l’information médicale : spécifications techniques de transport, standards de communication, puis intégration dans des applications utilisables.',
+      actors: 'Éditeurs, intégrateurs, équipe interopérabilité.',
+      failure: 'L’émetteur produit du XML quand le récepteur attend du JSON — ou deux profils FHIR incompatibles.',
+    },
+    {
+      id: 'infrastructure',
+      name: 'Infrastructure SI',
+      question: 'Les systèmes peuvent-ils se connecter de façon sûre et fiable ?',
+      detail:
+        'Protocoles génériques de communication et de réseau, stockage, sauvegarde, moteurs de base de données. Tout ce qui n’est pas spécifique à la santé.',
+      actors: 'Exploitation, réseau, cybersécurité, hébergeur.',
+      failure: 'L’API est injoignable depuis le réseau de l’hôpital ; le certificat a expiré la nuit dernière.',
+    },
+  ]}
+/>
+
+<Callout variant="warning">
+Une ressource FHIR parfaitement valide peut échouer à l’objectif d’interopérabilité si les autres
+couches manquent. **Une capacité à une couche ne prouve pas une interopérabilité complète.**
+</Callout>
+
+## Exemple guidé — envoyer un document au DMP
+
+Prenons un geste banal : un établissement publie un compte rendu dans le dossier médical partagé du
+patient. Descendez les six couches, question par question.
+
+<Reveal question="Le service national est joignable de manière sécurisée. Quelles couches cela prouve-t-il ?">
+Uniquement l’**infrastructure**, et partiellement les **applications** : vous savez que le tuyau
+existe et que le système sait conditionner un document. Vous ne savez rien du sens de son contenu,
+de son usage clinique, ni de la responsabilité de correction.
+</Reveal>
+
+<Reveal question="Le document arrive et s’affiche correctement. Le projet est-il terminé ?">
+Non. Trois questions restent ouvertes :
+
+- **Information** — le récepteur comprend-il chaque élément codé, ou lit-il des codes locaux qui ne
+  veulent rien dire chez lui ?
+- **Processus de soin** — qui utilise ce document, à quel moment du parcours, pour décider quoi ?
+- **Politique et juridique** — qui est responsable de la publication, de la correction, de l’usage ?
+  L’échange est-il légal *dans ce contexte précis* ?
+</Reveal>
+
+## Activité — classer la couche
+
+Pour chaque situation, identifiez la couche ReEIF **principale**. Plusieurs situations ont aussi une
+couche secondaire : notez-la mentalement avant de révéler la correction.
+
+<MatchActivity
+  id="reeif-sort"
+  title="Où se situe le problème ?"
+  instruction="Choisissez la couche ReEIF principale pour chacune des six situations."
+  options={[
+    { id: 'legal', label: 'Juridique' },
+    { id: 'policy', label: 'Gouvernance' },
+    { id: 'care', label: 'Processus de soin' },
+    { id: 'information', label: 'Information' },
+    { id: 'applications', label: 'Applications' },
+    { id: 'infrastructure', label: 'Infrastructure' },
+  ]}
+  items={[
+    {
+      text: 'Le récepteur ne peut pas interpréter un code local de biologie.',
+      answer: 'information',
+      note: 'Le transport fonctionne ; c’est le sens qui manque.',
+    },
+    {
+      text: 'L’API est inaccessible depuis le réseau de l’hôpital.',
+      answer: 'infrastructure',
+      note: 'Rien de spécifique à la santé : réseau, pare-feu, certificat.',
+    },
+    {
+      text: 'Personne ne sait qui doit agir après réception de l’alerte.',
+      answer: 'care',
+      note: 'Processus de soin, avec une part de gouvernance : le workflow partagé n’existe pas.',
+    },
+    {
+      text: 'L’émetteur utilise XML alors que le récepteur attend JSON.',
+      answer: 'applications',
+      note: 'Choix de mécanisme d’échange, pas de sens ni de droit.',
+    },
+    {
+      text: 'La politique de consentement est ambiguë pour cette réutilisation des données.',
+      answer: 'legal',
+      note: 'Juridique en premier, gouvernance ensuite pour trancher et documenter.',
+    },
+    {
+      text: 'Les deux équipes de soin valident le résultat à des moments différents.',
+      answer: 'care',
+      note: 'Deux workflows non alignés : le message arrive au mauvais moment du parcours.',
+    },
+  ]}
+/>
+
+## Du cas d’usage à l’implémentation
+
+Le ReEIF n’est pas qu’une grille de diagnostic. C’est aussi un ordre de travail. La tentation
+constante est de commencer par la spécification technique ; l’ordre efficace est l’inverse.
+
+<StepFlow
+  caption="La spécification n’est pas le point de départ. L’objectif de soin l’est."
+  steps={[
+    {
+      title: 'Résultat attendu du soin',
+      body: 'Que doivent accomplir les patients et les professionnels ? Quelle décision devient possible ?',
+    },
+    {
+      title: 'Contenu informationnel',
+      body: 'Quelles données, quels concepts, quels codes et quelles unités sont nécessaires ?',
+    },
+    {
+      title: 'Échange applicatif',
+      body: 'Quel document, message, API, profil ou transaction porte ce contenu ?',
+    },
+    {
+      title: 'Chemin technique',
+      body: 'Comment l’information circule-t-elle de façon sûre et fiable ?',
+    },
+    {
+      title: 'Vérification',
+      body: 'Quels accords, responsabilités et contraintes réglementaires s’appliquent ?',
+    },
+  ]}
+/>
+
+<Callout variant="reflect">
+Pensez à un flux que vous connaissez. Sans regarder de documentation : sauriez-vous nommer, pour ce
+flux, **une** décision prise à chacune des six couches ? Celle que vous ne trouvez pas est
+probablement celle qui posera problème.
+</Callout>
+
+## Quiz de sortie
+
+<Quiz
+  id="m1-quiz"
+  title="Trois questions pour vérifier le modèle mental"
+  questions={[
+    {
+      q: 'Deux systèmes échangent du JSON valide sur HTTPS. Quelles couches ReEIF sont certainement couvertes ?',
+      options: [
+        'Les six couches : l’échange fonctionne.',
+        'Au plus une partie des couches Applications et Infrastructure.',
+        'Les couches Information et Applications.',
+        'Aucune : JSON n’est pas un standard de santé.',
+      ],
+      answer: 1,
+      explain:
+        'Un transport chiffré et un format parsable prouvent que le chemin technique existe et qu’un mécanisme d’échange a été choisi. Ils ne disent rien du sens, du workflow, des responsabilités ni du droit.',
+    },
+    {
+      q: 'Le récepteur comprend parfaitement la donnée, mais aucun workflow partagé n’existe. Quelle couche manque ?',
+      options: ['Information', 'Applications', 'Processus de soin', 'Infrastructure'],
+      answer: 2,
+      explain:
+        'C’est la couche Processus de soin qui aligne les parcours et prescrit quelle information est nécessaire, à quel moment, pour quelle action.',
+    },
+    {
+      q: 'Où se situent principalement les terminologies, les unités et les ValueSets ?',
+      options: ['Applications', 'Information', 'Gouvernance', 'Infrastructure'],
+      answer: 1,
+      explain:
+        'La couche Information porte le modèle de données, les éléments de données et leur rattachement aux terminologies. Le profil qui les contraint vit, lui, sur la couche Applications.',
+    },
+  ]}
+/>
+
+## À retenir
+
+L’interopérabilité en santé est multidimensionnelle. L’échange technique est **nécessaire mais pas
+suffisant**. Le ReEIF ne résout aucun problème : il vous donne une carte du reste du problème, et un
+langage commun pour en parler avec des gens qui ne font pas le même métier que vous.
+
+Le module suivant répond à la question qui vient immédiatement après : pourquoi faut-il
+*standardiser*, plutôt que simplement *connecter* ?

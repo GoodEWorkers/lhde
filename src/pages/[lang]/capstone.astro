@@ -1,0 +1,288 @@
+---
+import Base from '../../layouts/Base.astro';
+import Checklist from '../../components/Checklist.astro';
+import StepFlow from '../../components/StepFlow.astro';
+import { languages, useTranslations, localePath, type Lang } from '../../i18n/utils';
+
+export function getStaticPaths() {
+  return (Object.keys(languages) as Lang[]).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+
+const copy = {
+  fr: {
+    mission: 'Mission',
+    missionBody:
+      'Choisissez un sujet parmi cinq et réalisez un prototype connecté à un serveur FHIR. Avant de coder, vous devez sélectionner et justifier les spécifications pertinentes : version de FHIR, profil ou guide d’implémentation, message ou document cible, terminologies.',
+    format: 'Format cible',
+    subject: 'Sujet',
+    app: 'Application à réaliser',
+    aiTitle: 'IA obligatoire — et c’est le sujet de l’évaluation',
+    aiBody:
+      'Vous êtes évalués aussi sur votre capacité à piloter, contraindre et vérifier l’IA. Chaque membre remet deux fichiers individuels : PROMPTS_Nom_Prenom_CDC.md pour la conception et PROMPTS_Nom_Prenom_REAL.md pour la réalisation. Les prompts doivent montrer votre compréhension : contexte, spécifications, contraintes, vérifications, tests, corrections et itérations.',
+    phase1: 'Phase 1 — Conception (1 h)',
+    phase2: 'Phase 2 — Réalisation (2 h)',
+    deliverable1: 'Livrable à H+1 : le cahier des charges commun au groupe.',
+    deliverable2:
+      'Remise finale : code commun dans le dépôt GitHub, plus un fichier PROMPTS par étudiant et par phase.',
+    grading: 'Barème /20',
+    golden: 'Règle d’or',
+    goldenBody:
+      'L’IA peut proposer. Vous devez spécifier, vérifier et comprendre le résultat. Un prototype qui fonctionne sans que vous puissiez justifier une seule contrainte ne vaut rien.',
+    group: 'Groupe de 2 ou 3 étudiants',
+    duration: 'Durée totale : 3 heures',
+    mapping: 'Où réviser avant de commencer',
+    mappingBody:
+      'Chaque exigence du projet correspond à un module du parcours. Si vous bloquez, revenez au module correspondant plutôt qu’à la documentation du standard.',
+  },
+  en: {
+    mission: 'Mission',
+    missionBody:
+      'Pick one of five subjects and build a prototype connected to a FHIR server. Before writing code, you must select and justify the relevant specifications: FHIR version, profile or implementation guide, target message or document, terminologies.',
+    format: 'Target format',
+    subject: 'Subject',
+    app: 'Application to build',
+    aiTitle: 'AI is mandatory — and it is what is being assessed',
+    aiBody:
+      'You are also assessed on your ability to steer, constrain and verify the AI. Each member submits two individual files: PROMPTS_Lastname_Firstname_CDC.md for the design phase and PROMPTS_Lastname_Firstname_REAL.md for the build. The prompts must demonstrate your understanding: context, specifications, constraints, checks, tests, corrections and iterations.',
+    phase1: 'Phase 1 — Design (1 h)',
+    phase2: 'Phase 2 — Build (2 h)',
+    deliverable1: 'Deliverable at H+1: the group\'s shared requirements specification.',
+    deliverable2: 'Final submission: shared code in the GitHub repository, plus one PROMPTS file per student per phase.',
+    grading: 'Marking scheme /20',
+    golden: 'Golden rule',
+    goldenBody:
+      'The AI may propose. You must specify, verify and understand the result. A prototype that works while you cannot justify a single constraint is worth nothing.',
+    group: 'Group of 2 or 3 students',
+    duration: 'Total duration: 3 hours',
+    mapping: 'What to revise before you start',
+    mappingBody:
+      'Every project requirement maps to a module in the pathway. When you get stuck, go back to the matching module rather than to the standard\'s documentation.',
+  },
+}[lang];
+
+const subjects =
+  lang === 'fr'
+    ? [
+        { key: 'A', app: 'Admission d’un patient', format: 'HL7 v2' },
+        { key: 'B', app: 'Rendez-vous / calendrier patient', format: 'HL7 v2' },
+        { key: 'C', app: 'Affichage d’un compte rendu de biologie', format: 'CDA' },
+        { key: 'D', app: 'Indicateur de gestion des lits', format: 'CSV' },
+        { key: 'E', app: 'Affichage du résumé médical du patient (IPS)', format: 'CDA' },
+      ]
+    : [
+        { key: 'A', app: 'Patient admission', format: 'HL7 v2' },
+        { key: 'B', app: 'Patient appointments / calendar', format: 'HL7 v2' },
+        { key: 'C', app: 'Display of a laboratory report', format: 'CDA' },
+        { key: 'D', app: 'Bed management indicator', format: 'CSV' },
+        { key: 'E', app: 'Display of the patient summary (IPS)', format: 'CDA' },
+      ];
+
+const design =
+  lang === 'fr'
+    ? [
+        'Besoin métier, utilisateur, scénario et critères d’acceptation',
+        'Choix des spécifications : FHIR et version, ressources, profils ou IG',
+        'Standard cible et terminologies retenues, avec justification',
+        'Interactions prévues avec le serveur FHIR : lecture, recherche, création ou mise à jour',
+        'Architecture et lecture ReEIF : infrastructure, application, information, métier, organisation, juridique',
+        'Règles de transformation et de mapping sémantique',
+        'Limites et pertes d’information identifiées et assumées',
+        'Cahier des charges suffisamment précis pour être transmis à l’IA de développement',
+      ]
+    : [
+        'Business need, user, scenario and acceptance criteria',
+        'Specification choices: FHIR and version, resources, profiles or IG',
+        'Target standard and chosen terminologies, with justification',
+        'Planned interactions with the FHIR server: read, search, create or update',
+        'Architecture and ReEIF reading: infrastructure, application, information, business, organisation, legal',
+        'Transformation and semantic mapping rules',
+        'Identified and accepted information limits and losses',
+        'A specification precise enough to hand to the development AI',
+      ];
+
+const build =
+  lang === 'fr'
+    ? [
+        'Connexion et interaction réelles avec le serveur FHIR — aucune donnée métier codée en dur',
+        'Une vue métier exploitable par l’utilisateur',
+        'Une vue affichant la ou les ressources FHIR réellement utilisées',
+        'Une vue affichant la conversion vers le format cible (HL7 v2 / CDA / CSV)',
+        'Une vue démontrant un changement ou alignement de terminologie : code source → code cible',
+        'Gestion minimale des erreurs',
+        'Traçabilité des échanges',
+        'Le prototype peut être testé avec d’autres données que celles de la démonstration',
+      ]
+    : [
+        'Real connection and interaction with the FHIR server — no hard-coded business data',
+        'A business view usable by the end user',
+        'A view showing the FHIR resources actually used',
+        'A view showing the conversion to the target format (HL7 v2 / CDA / CSV)',
+        'A view demonstrating a terminology change or alignment: source code → target code',
+        'Minimal error handling',
+        'Traceability of the exchanges',
+        'The prototype can be tested with data other than the demo dataset',
+      ];
+
+const grading =
+  lang === 'fr'
+    ? [
+        { pts: '5 pts', label: 'Cahier des charges — commun au groupe' },
+        { pts: '5 pts', label: 'Prompts de conception — individuel' },
+        { pts: '5 pts', label: 'Réalisation — commune au groupe' },
+        { pts: '5 pts', label: 'Prompts de réalisation — individuel' },
+      ]
+    : [
+        { pts: '5 pts', label: 'Requirements specification — shared by the group' },
+        { pts: '5 pts', label: 'Design prompts — individual' },
+        { pts: '5 pts', label: 'Build — shared by the group' },
+        { pts: '5 pts', label: 'Build prompts — individual' },
+      ];
+
+const mapping =
+  lang === 'fr'
+    ? [
+        { route: 'foundations', need: 'Lire le projet couche par couche avec le ReEIF' },
+        { route: 'syntax', need: 'Choisir et justifier le mécanisme d’échange et le format cible' },
+        { route: 'semantics', need: 'Aligner codes, unités et ValueSets ; construire le mapping' },
+        { route: 'ecosystem', need: 'Situer HL7 v2, CDA, IPS et les terminologies retenues' },
+        { route: 'fhir', need: 'Écrire les requêtes et choisir le bon paradigme FHIR' },
+        { route: 'profiling', need: 'Identifier le profil applicable et la preuve de conformité' },
+        { route: 'architecture', need: 'Placer validation, traçabilité et gestion d’erreur' },
+        { route: 'integration', need: 'Produire un dossier qui rend les hypothèses explicites' },
+      ]
+    : [
+        { route: 'foundations', need: 'Read the project layer by layer with ReEIF' },
+        { route: 'syntax', need: 'Choose and justify the exchange mechanism and target format' },
+        { route: 'semantics', need: 'Align codes, units and ValueSets; build the mapping' },
+        { route: 'ecosystem', need: 'Locate HL7 v2, CDA, IPS and the chosen terminologies' },
+        { route: 'fhir', need: 'Write the requests and pick the right FHIR paradigm' },
+        { route: 'profiling', need: 'Identify the applicable profile and the conformance evidence' },
+        { route: 'architecture', need: 'Place validation, traceability and error handling' },
+        { route: 'integration', need: 'Produce a file that makes the assumptions explicit' },
+      ];
+---
+
+<Base title={t('capstone.title')} description={t('capstone.lede')}>
+  <section class="container-x py-14 md:py-20">
+    <p class="eyebrow">{t('level.project')}</p>
+    <h1 class="mt-4 max-w-4xl font-clash text-4xl leading-[1.08] text-white md:text-6xl">
+      {t('capstone.title')}
+    </h1>
+    <p class="mt-6 max-w-2xl text-lg leading-[1.7] text-midgray">{t('capstone.lede')}</p>
+
+    <div class="mt-8 flex flex-wrap gap-3 text-xs">
+      <span class="rounded-full border border-white/25 px-4 py-1.5 font-bold text-ashgray">{copy.duration}</span>
+      <span class="rounded-full border border-white/25 px-4 py-1.5 font-bold text-ashgray">{copy.group}</span>
+      <span class="rounded-full border border-orange bg-orange px-4 py-1.5 font-bold text-black">
+        {lang === 'fr' ? 'IA obligatoire' : 'AI mandatory'}
+      </span>
+    </div>
+  </section>
+
+  <!-- mission + subjects -->
+  <section class="container-x pb-16">
+    <div class="rounded-3xl bg-black-light p-8 md:p-12">
+      <h2 class="font-clash text-2xl text-white md:text-3xl">{copy.mission}</h2>
+      <p class="mt-5 max-w-3xl leading-[1.7] text-midgray">{copy.missionBody}</p>
+
+      <div class="mt-10 overflow-x-auto">
+        <table class="w-full border-collapse text-left text-sm">
+          <thead>
+            <tr>
+              <th class="border-b-2 border-orange/50 py-3 pr-4 font-clash text-white">{copy.subject}</th>
+              <th class="border-b-2 border-orange/50 py-3 pr-4 font-clash text-white">{copy.app}</th>
+              <th class="border-b-2 border-orange/50 py-3 font-clash text-white">{copy.format}</th>
+            </tr>
+          </thead>
+          <tbody>
+            {
+              subjects.map((s) => (
+                <tr>
+                  <td class="border-b border-white/10 py-3 pr-4 font-clash text-xl text-orange">{s.key}</td>
+                  <td class="border-b border-white/10 py-3 pr-4 text-ashgray">{s.app}</td>
+                  <td class="border-b border-white/10 py-3 font-bold text-white">{s.format}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- phases -->
+  <section class="container-x pb-8">
+    <StepFlow
+      steps={[
+        { title: lang === 'fr' ? 'Cadrer' : 'Frame', body: lang === 'fr' ? 'Besoin, utilisateur, décision attendue.' : 'Need, user, expected decision.' },
+        { title: lang === 'fr' ? 'Spécifier' : 'Specify', body: lang === 'fr' ? 'Version, profil, terminologies, interactions.' : 'Version, profile, terminologies, interactions.' },
+        { title: lang === 'fr' ? 'Piloter l’IA' : 'Steer the AI', body: lang === 'fr' ? 'Contraindre, vérifier, corriger, itérer.' : 'Constrain, verify, correct, iterate.' },
+        { title: lang === 'fr' ? 'Réaliser' : 'Build', body: lang === 'fr' ? 'Connexion réelle, quatre vues, gestion d’erreur.' : 'Real connection, four views, error handling.' },
+        { title: lang === 'fr' ? 'Prouver' : 'Prove', body: lang === 'fr' ? 'Traces, tests avec d’autres données, justification.' : 'Traces, tests with other data, justification.' },
+      ]}
+    />
+  </section>
+
+  <section class="container-x space-y-6 pb-16">
+    <Checklist id="capstone-design" title={copy.phase1} intro={copy.deliverable1} items={design} />
+    <Checklist id="capstone-build" title={copy.phase2} intro={copy.deliverable2} items={build} />
+  </section>
+
+  <!-- AI + grading -->
+  <section class="container-x pb-16">
+    <div class="grid gap-3 lg:grid-cols-[1.3fr_1fr]">
+      <div class="rounded-2xl border-l-4 border-purple bg-black-light p-8">
+        <p class="eyebrow text-purple">{copy.aiTitle}</p>
+        <p class="mt-4 leading-[1.7] text-ashgray">{copy.aiBody}</p>
+        <pre class="mt-6 overflow-x-auto rounded-xl border border-white/10 bg-black p-4 text-xs text-ashgray"><code>PROMPTS_Nom_Prenom_CDC.md    → {lang === 'fr' ? 'prompts de conception' : 'design prompts'}
+PROMPTS_Nom_Prenom_REAL.md   → {lang === 'fr' ? 'prompts de réalisation' : 'build prompts'}</code></pre>
+      </div>
+
+      <div class="rounded-2xl bg-black-light p-8">
+        <p class="eyebrow">{copy.grading}</p>
+        <ul class="mt-5 space-y-3">
+          {
+            grading.map((g) => (
+              <li class="flex items-baseline gap-4 border-b border-white/10 pb-3">
+                <span class="font-clash text-2xl font-bold text-orange">{g.pts}</span>
+                <span class="text-sm text-ashgray">{g.label}</span>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+    </div>
+
+    <div class="mt-3 rounded-2xl bg-orange p-8 text-black md:p-10">
+      <p class="font-clash text-xs font-bold tracking-[0.2em] uppercase">{copy.golden}</p>
+      <p class="mt-3 max-w-3xl font-clash text-2xl leading-tight md:text-3xl">{copy.goldenBody}</p>
+    </div>
+  </section>
+
+  <!-- revision map -->
+  <section class="container-x pb-24">
+    <h2 class="font-clash text-2xl text-white md:text-3xl">{copy.mapping}</h2>
+    <p class="mt-4 max-w-2xl text-midgray">{copy.mappingBody}</p>
+
+    <ul class="mt-8 grid gap-2 md:grid-cols-2">
+      {
+        mapping.map((m) => (
+          <li>
+            <a
+              href={localePath(lang, `modules/${m.route}`)}
+              class="flex items-start gap-4 rounded-xl border border-white/10 px-5 py-4 transition-colors hover:border-orange/60 hover:bg-black-light"
+            >
+              <span class="mt-0.5 shrink-0 font-clash text-xs font-bold tracking-widest text-orange uppercase">
+                {m.route}
+              </span>
+              <span class="text-sm text-ashgray">{m.need}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ul>
+  </section>
+</Base>

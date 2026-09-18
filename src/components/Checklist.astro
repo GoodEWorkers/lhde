@@ -1,0 +1,72 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+interface Props {
+  id: string;
+  title: string;
+  intro?: string;
+  items: string[];
+}
+
+const { id, title, intro, items } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section
+  class="not-prose my-12 rounded-2xl border border-yellow/30 bg-black-light p-6 md:p-8"
+  data-checklist
+  data-checklist-id={id}
+>
+  <p class="eyebrow text-yellow">{t('activity.label')}</p>
+  <h3 class="mt-2 font-clash text-2xl text-white md:text-3xl">{title}</h3>
+  {intro && <p class="mt-3 max-w-2xl text-sm text-midgray">{intro}</p>}
+
+  <ul class="mt-6 grid gap-2 sm:grid-cols-2">
+    {
+      items.map((item) => (
+        <li>
+          <label class="flex cursor-pointer items-start gap-3 rounded-xl border border-white/10 bg-black-soft px-4 py-3 text-sm text-ashgray transition-colors hover:border-yellow/60 has-checked:border-yellow has-checked:text-white">
+            <input type="checkbox" class="mt-0.5 h-4 w-4 shrink-0 accent-[#FDC959]" data-tick />
+            <span>{item}</span>
+          </label>
+        </li>
+      ))
+    }
+  </ul>
+
+  <p class="mt-6 font-clash text-lg text-white" data-count>
+    <span data-done>0</span>/{items.length} <span class="text-midgray">{t('checklist.progress')}</span>
+  </p>
+  <p class="mt-2 hidden text-sm font-bold text-emerald-400" data-complete>{t('checklist.done')}</p>
+</section>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-checklist]').forEach((list) => {
+    const key = `interop:checklist:${list.dataset.checklistId}`;
+    const ticks = [...list.querySelectorAll<HTMLInputElement>('[data-tick]')];
+    const done = list.querySelector<HTMLElement>('[data-done]')!;
+    const complete = list.querySelector<HTMLElement>('[data-complete]')!;
+
+    const render = () => {
+      const n = ticks.filter((t) => t.checked).length;
+      done.textContent = String(n);
+      complete.classList.toggle('hidden', n !== ticks.length);
+      try {
+        localStorage.setItem(key, JSON.stringify(ticks.map((t) => t.checked)));
+      } catch {
+        /* private mode — progress simply is not persisted */
+      }
+    };
+
+    try {
+      const saved = JSON.parse(localStorage.getItem(key) ?? 'null');
+      if (Array.isArray(saved)) ticks.forEach((t, i) => (t.checked = Boolean(saved[i])));
+    } catch {
+      /* ignore malformed storage */
+    }
+
+    ticks.forEach((t) => t.addEventListener('change', render));
+    render();
+  });
+</script>

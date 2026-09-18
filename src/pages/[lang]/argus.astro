@@ -1,0 +1,147 @@
+---
+import Base from '../../layouts/Base.astro';
+import CardGrid from '../../components/CardGrid.astro';
+import StepFlow from '../../components/StepFlow.astro';
+import { languages, useTranslations, localePath, type Lang } from '../../i18n/utils';
+import { getModules } from '../../lib/modules';
+
+export function getStaticPaths() {
+  return (Object.keys(languages) as Lang[]).map((lang) => ({ params: { lang } }));
+}
+
+const lang = Astro.params.lang as Lang;
+const t = useTranslations(lang);
+const modules = await getModules(lang);
+
+const copy = {
+  fr: {
+    origin: 'L’origine',
+    originBody:
+      'Hôpital Saint Joseph, taille moyenne : périmètre visible, complexité réelle. Les flux essentiels sont connus — identité, séjours, agendas, agents, structures, matériel — mais chacun vit dans son silo. Le besoin métier tient en trois mots : supervision, traçabilité, compréhension des flux.',
+    originBody2:
+      'Argus n’est pas un tableau de bord. C’est une tour de contrôle : un usage rendu possible par un socle standardisé. Elle n’existe qu’après la destruction progressive des silos, jamais avant.',
+    domains: 'Les six domaines à stabiliser',
+    capabilities: 'Ce qu’Argus doit permettre',
+    thread: 'Le fil, module par module',
+    threadBody:
+      'Chaque module rouvre le même cas avec un outillage plus précis. Voici la question qu’Argus vous pose à chaque étape.',
+    openModule: 'Ouvrir le module',
+    warning: 'Le piège à éviter',
+    warningBody:
+      'Convertir techniquement des flux ne suffit pas. Sans stabiliser les objets métier, leur provenance et leur cycle de vie, une tour de contrôle affiche des chiffres que personne n’ose utiliser pour décider.',
+  },
+  en: {
+    origin: 'The origin',
+    originBody:
+      'Saint Joseph Hospital, mid-sized: visible scope, real complexity. The essential flows are known — identity, stays, schedules, staff, structures, equipment — but each lives in its own silo. The business need fits in three words: supervision, traceability, understanding of flows.',
+    originBody2:
+      'Argus is not a dashboard. It is a control tower: a use case made possible by a standardised foundation. It only exists after the progressive destruction of silos, never before.',
+    domains: 'The six domains to stabilise',
+    capabilities: 'What Argus must enable',
+    thread: 'The thread, module by module',
+    threadBody:
+      'Every module reopens the same case with sharper tooling. Here is the question Argus asks you at each step.',
+    openModule: 'Open module',
+    warning: 'The trap to avoid',
+    warningBody:
+      'Technically converting flows is not enough. Without stabilising the business objects, their provenance and their lifecycle, a control tower displays numbers nobody dares decide on.',
+  },
+}[lang];
+
+const domains =
+  lang === 'fr'
+    ? [
+        { tag: 'Identité patient', title: 'Qui est la personne ?', body: 'Identités, rapprochements, domaines d’identification, qualité d’identité.' },
+        { tag: 'Séjours', title: 'Où est le patient ?', body: 'Contexte de prise en charge, depuis quand, avec quel statut.' },
+        { tag: 'Agenda / RDV', title: 'Quand la ressource est-elle mobilisée ?', body: 'Créneaux, annulations, retards, présence effective.' },
+        { tag: 'Agents', title: 'Qui agit ?', body: 'Rôle, identifiant, organisation de rattachement.' },
+        { tag: 'Structures', title: 'Où se situe l’activité ?', body: 'Service, unité, lieu, organisation : le référentiel sans lequel rien ne s’agrège.' },
+        { tag: 'Matériel', title: 'Quelle ressource supporte l’activité ?', body: 'Dispositifs, équipements, disponibilité, maintenance.' },
+      ]
+    : [
+        { tag: 'Patient identity', title: 'Who is this person?', body: 'Identities, matching, identification domains, identity quality.' },
+        { tag: 'Stays', title: 'Where is the patient?', body: 'Care context, since when, with which status.' },
+        { tag: 'Schedule', title: 'When is the resource used?', body: 'Slots, cancellations, delays, actual attendance.' },
+        { tag: 'Staff', title: 'Who acts?', body: 'Role, identifier, home organisation.' },
+        { tag: 'Structures', title: 'Where does activity happen?', body: 'Service, unit, place, organisation: the registry without which nothing aggregates.' },
+        { tag: 'Equipment', title: 'Which resource supports activity?', body: 'Devices, equipment, availability, maintenance.' },
+      ];
+
+const capabilities =
+  lang === 'fr'
+    ? [
+        { title: 'Observer', body: 'Suivre l’état du système hospitalier en temps quasi réel.' },
+        { title: 'Tracer', body: 'Comprendre l’origine, la transformation et la qualité des données.' },
+        { title: 'Décider', body: 'Prioriser, anticiper les tensions, coordonner les équipes.' },
+        { title: 'Automatiser', body: 'Déclencher des règles fiables à partir de données fiables.' },
+        { title: 'Réutiliser', body: 'Brancher recherche, IA et pilotage sur le même socle.' },
+      ]
+    : [
+        { title: 'Observe', body: 'Follow the state of the hospital system in near real time.' },
+        { title: 'Trace', body: 'Understand the origin, transformation and quality of the data.' },
+        { title: 'Decide', body: 'Prioritise, anticipate pressure, coordinate teams.' },
+        { title: 'Automate', body: 'Trigger reliable rules from reliable data.' },
+        { title: 'Reuse', body: 'Plug research, AI and management onto the same foundation.' },
+      ];
+---
+
+<Base title={t('case.title')} description={t('case.lede')}>
+  <section class="container-x py-14 md:py-20">
+    <p class="eyebrow text-purple">{t('nav.case')}</p>
+    <h1 class="mt-4 max-w-3xl font-clash text-4xl leading-[1.08] text-white md:text-6xl">Argus</h1>
+    <p class="mt-6 max-w-2xl text-lg leading-[1.7] text-midgray">{t('case.lede')}</p>
+  </section>
+
+  <section class="container-x pb-16">
+    <div class="grid gap-10 rounded-3xl bg-black-light p-8 lg:grid-cols-2 md:p-14">
+      <div>
+        <h2 class="font-clash text-2xl text-white md:text-3xl">{copy.origin}</h2>
+        <p class="mt-5 leading-[1.7] text-midgray">{copy.originBody}</p>
+        <p class="mt-4 leading-[1.7] text-midgray">{copy.originBody2}</p>
+      </div>
+      <div class="rounded-2xl border-l-4 border-yellow bg-black px-6 py-5">
+        <p class="eyebrow text-yellow">{copy.warning}</p>
+        <p class="mt-3 leading-relaxed text-ashgray">{copy.warningBody}</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="container-x pb-8">
+    <h2 class="font-clash text-2xl text-white md:text-3xl">{copy.domains}</h2>
+    <CardGrid cards={domains} columns={3} />
+  </section>
+
+  <section class="container-x pb-12">
+    <h2 class="font-clash text-2xl text-white md:text-3xl">{copy.capabilities}</h2>
+    <StepFlow steps={capabilities} />
+  </section>
+
+  <section class="container-x pb-24">
+    <h2 class="font-clash text-2xl text-white md:text-3xl">{copy.thread}</h2>
+    <p class="mt-4 max-w-2xl text-midgray">{copy.threadBody}</p>
+
+    <ol class="mt-10 space-y-3">
+      {
+        modules.map((m) => (
+          <li class="rounded-2xl bg-black-light p-6 md:p-8">
+            <div class="flex flex-wrap items-baseline gap-4">
+              <span class="font-clash text-3xl leading-none font-bold text-purple">
+                {String(m.data.order).padStart(2, '0')}
+              </span>
+              <h3 class="font-clash text-xl text-white md:text-2xl">{m.data.title}</h3>
+            </div>
+            <p class="mt-4 max-w-3xl leading-relaxed text-ashgray">{m.data.argus}</p>
+            <a
+              href={localePath(lang, `modules/${m.data.route}`)}
+              class="mt-4 inline-block text-sm font-bold text-orange hover:underline"
+            >
+              {copy.openModule} →
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+
+    <a href={localePath(lang, 'capstone')} class="pill-orange mt-12">{t('capstone.title')} →</a>
+  </section>
+</Base>

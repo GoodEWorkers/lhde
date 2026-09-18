@@ -1,0 +1,352 @@
+---
+route: integration
+lang: en
+order: 9
+phase: 4
+level: advanced
+title: Integration theory
+subtitle: From the business request to the integration file.
+outcome: >-
+  Apply the ReEIF layers to an integration project in order to identify the technical, semantic,
+  business, organisational and legal decisions to take — and their deliverables.
+duration: 55
+question: The interface works in pre-production. Is the project validated?
+agenda:
+  - An integration project is multidimensional
+  - ReEIF as a design checklist
+  - Layer by layer — decisions, risks, deliverables
+  - From business need to integration file
+  - Framing a complete project
+argus: >-
+  Pick a single inbound Argus flow and fill in the complete ReEIF grid. Then identify the riskiest
+  layer, one architectural decision and one deliverable to produce.
+sources:
+  - MCLB 9 — Integration theory (XiA Educathon, Fyrstain)
+  - eHealth Network, Refined eHealth European Interoperability Framework, 2015
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import Checklist from '../../../components/Checklist.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import LayerStack from '../../../components/LayerStack.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## Integrating is not just plugging in
+
+A technical flow can work perfectly while the project stays out of control. So the opening question
+is not "how do we connect?" but: **when an application must receive hospital data, what actually has
+to be decided?**
+
+<CardGrid
+  columns={5}
+  cards={[
+    { tag: 'Connection', title: 'Access and security', body: 'Is the system reachable, secured and monitored?' },
+    { tag: 'Format', title: 'Mechanism', body: 'Which message, document, API or file is exchanged?' },
+    { tag: 'Meaning', title: 'Alignment', body: 'Are identifiers, codes, units and values aligned?' },
+    { tag: 'Use', title: 'Process', body: 'Who validates, who acts, when, and following which process?' },
+    { tag: 'Ownership', title: 'Governance', body: 'Who owns the flow, corrects errors and audits access?' },
+  ]}
+  caption="Integration is an architectural activity: it turns a business need into a coherent chain of decisions."
+/>
+
+## ReEIF as a design checklist
+
+You met ReEIF in module 1 as a **diagnostic** grid. Here it becomes a **design** grid: every layer
+produces different decisions, risks and deliverables.
+
+<LayerStack
+  caption="Every layer produces different decisions, risks and deliverables."
+  layers={[
+    {
+      id: 'legal',
+      name: '6 — Legal',
+      question: 'Are processing and exchange authorised and compliant?',
+      detail:
+        'Purpose of processing, legal basis or consent, hosting and security requirements, traceability and exercise of rights, contracts and subcontracting, SLA, reversibility.',
+      actors: 'DPO, legal, executives, hosting provider.',
+      failure:
+        'Compliance arrives at the end of the project and overturns architecture, access, traces and contracts.',
+    },
+    {
+      id: 'org',
+      name: '5 — Organisation',
+      question: 'Who owns the flow, the errors and the governance?',
+      detail:
+        'A business owner who defines use and validates the process; IT that operates and monitors; CISO and DPO who validate security and compliance; vendors who honour specification, SLA and fixes; data governance that arbitrates registries and changes.',
+      actors: 'Business, IT, CISO, DPO, vendors, data governance.',
+      failure: 'Without governance, exceptions become the norm and integration turns artisanal again.',
+    },
+    {
+      id: 'business',
+      name: '4 — Business',
+      question: 'Is the clinical process validated and shared?',
+      detail:
+        'At which point in the pathway the data is produced, transmitted and used; which professional validates or corrects; which decision depends on it; what happens if it is missing, late or inconsistent.',
+      actors: 'Doctors, nurses, clinical leads, process owners.',
+      failure:
+        'An integration signed off "because the message goes through", while the process itself does not work.',
+    },
+    {
+      id: 'information',
+      name: '3 — Information',
+      question: 'Are codes, units, identifiers and models aligned?',
+      detail:
+        'Patient, staff and structure identifiers; local codes and standard terminologies; units, dates, statuses, null values; registry versions; transformation and rounding rules.',
+      actors: 'Analysts, terminology experts, interop team.',
+      failure:
+        'The project fails not because the data does not flow, but because it does not mean the same thing.',
+    },
+    {
+      id: 'application',
+      name: '2 — Application',
+      question: 'Which syntactic exchange mechanism is used?',
+      detail:
+        'Message push, API, document or file. To verify in every case: version, exact format, acknowledgements, error handling, replays, expected profile, behaviour on failure.',
+      actors: 'Vendors, integrators, developers.',
+      failure: 'An unplanned replay duplicates encounters in production, on a Sunday evening.',
+    },
+    {
+      id: 'infrastructure',
+      name: '1 — Infrastructure',
+      question: 'How do systems connect safely?',
+      detail:
+        'Port openings and network rules; SFTP, VPN, TLS, proxy or messaging; addresses, DNS, certificates, firewall; technical authentication and secret rotation; monitoring, alerting and availability.',
+      actors: 'Network, operations, cybersecurity.',
+      failure:
+        'Flow blocked in production, weak authentication, no usable logging, dependence on a generic account, no recovery scenario.',
+    },
+  ]}
+/>
+
+## What each layer must produce
+
+| Layer | Expected deliverables |
+| --- | --- |
+| Infrastructure | Flow matrix, technical architecture file, authentication model, monitoring plan, operating procedure |
+| Application | Exchange specification, expected version and profile, error and replay handling, test message sets |
+| Information | Data dictionary, mapping tables, ValueSets, transformation rules, semantic regression tests |
+| Business | Business scenarios, acceptance criteria, test sets, clinical validation, degraded-mode procedures |
+| Organisation | Flow RACI, exchange contract, correction route, service commitment |
+| Legal | Purpose analysis, legal basis, processing register, contractual clauses, traceability plan |
+
+<Callout variant="key">
+A good integration file makes **explicit the assumptions** that projects usually leave implicit. That
+is its only value — and it is considerable.
+</Callout>
+
+## Tools and key questions of the Information layer
+
+The Information layer sinks more projects than any other, and is the easiest to underestimate during
+framing.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'To align',
+      title: 'The objects of disagreement',
+      tone: 'purple',
+      points: [
+        'Patient, staff and structure identifiers',
+        'Local codes and standard terminologies',
+        'Units, dates, statuses, null values',
+        'Registry versions',
+        'Transformation and rounding rules',
+      ],
+    },
+    {
+      label: 'Useful tools',
+      title: 'What already exists',
+      tone: 'orange',
+      points: [
+        'Terminology server',
+        'ValueSets and code validation',
+        'ConceptMap for translation',
+        'Identity registry',
+        'Semantic regression tests',
+      ],
+    },
+    {
+      label: 'Key questions',
+      title: 'To ask before coding',
+      tone: 'yellow',
+      points: [
+        'Does this code mean the same on both sides?',
+        'Which unit is expected?',
+        'Who maintains the mapping table?',
+        'What happens when an unknown code arrives?',
+        'Which source is authoritative?',
+      ],
+    },
+  ]}
+/>
+
+<Callout variant="warning">
+An integration is not validated when the message goes through. It is validated when **the process
+works**.
+</Callout>
+
+## From business need to integration file
+
+<StepFlow
+  caption="ReEIF provides the map; the integration file documents the journey."
+  steps={[
+    { title: 'Frame the use case', body: 'Goal, actors, expected decision.' },
+    { title: 'Describe the data', body: 'Model, codes, units, identifiers.' },
+    { title: 'Choose the mechanism', body: 'API, message, document, file.' },
+    { title: 'Secure the path', body: 'Flows, authentication, traces, monitoring.' },
+    { title: 'Test and govern', body: 'Business acceptance, responsibilities, compliance.' },
+  ]}
+/>
+
+<Reveal question="An SFTP interface works in pre-production. Can we call the integration project validated?">
+No. Working in pre-production proves infrastructure and, partly, application. Four questions remain
+open:
+
+- **Information**: are codes and units aligned with the real production source?
+- **Business**: has the process been replayed with the professionals involved, including in degraded
+  mode?
+- **Organisation**: who fixes an error found in production, and within what time?
+- **Legal**: is the purpose you tested the one that is actually authorised?
+</Reveal>
+
+## Running case — integrating Argus
+
+Goal: aggregate data from silos into a usable operational picture. Four domains to start: patient
+identity (identifiers, status, matching, quality), appointments (schedule, cancellations, delays,
+attendance), structure (services, units, beds, organisations, places), equipment (availability,
+location, condition, maintenance).
+
+Here ReEIF serves to verify that each source is **technically connected, syntactically usable,
+semantically understood and organisationally governed**.
+
+<Checklist
+  id="integration-file"
+  title="Framing grid — one flow, six layers"
+  intro="Pick a real flow. Only tick the boxes for which you can show a written deliverable."
+  items={[
+    'Infrastructure: flows, ports, protocols, certificates, technical accounts, traces',
+    'Infrastructure: recovery scenario and monitoring plan',
+    'Application: mechanism, format, version, expected profile',
+    'Application: error handling, acknowledgements, replays',
+    'Information: codes, units, identifiers, registries, mappings',
+    'Information: behaviour when an unknown code arrives',
+    'Business: scenarios, acceptance criteria, clinical validation',
+    'Business: degraded-mode procedure',
+    'Organisation: who validates, who acts, who corrects, within what time',
+    'Legal: purpose, legal basis, hosting, contracts',
+  ]}
+/>
+
+## Activity — which layer is concerned?
+
+<MatchActivity
+  id="integration-layers"
+  title="Diagnose an integration project in flight"
+  instruction="For each symptom, name the primarily concerned ReEIF layer."
+  options={[
+    { id: 'infra', label: 'Infrastructure' },
+    { id: 'app', label: 'Application' },
+    { id: 'info', label: 'Information' },
+    { id: 'business', label: 'Business' },
+    { id: 'org', label: 'Organisation' },
+    { id: 'legal', label: 'Legal' },
+  ]}
+  items={[
+    {
+      text: 'A flow sends a local code the receiver does not know.',
+      answer: 'info',
+      note: 'No semantic alignment — and no rule for the unknown code.',
+    },
+    {
+      text: 'Nobody knows who corrects a data error found in production.',
+      answer: 'org',
+      note: 'Governance: with no named owner, the exception becomes the norm.',
+    },
+    {
+      text: 'The flow works but clinicians never validated when the information arrives.',
+      answer: 'business',
+      note: 'The clinical process was not replayed: the integration is not validated.',
+    },
+    {
+      text: 'The partner certificate expires and nobody is alerted before the outage.',
+      answer: 'infra',
+      note: 'Missing monitoring and operating procedure.',
+    },
+    {
+      text: 'An unplanned replay created duplicate encounters.',
+      answer: 'app',
+      note: 'Failure behaviour and idempotency were never specified.',
+    },
+    {
+      text: 'Reusing the data for a research dashboard was never analysed.',
+      answer: 'legal',
+      note: 'Purpose and legal basis: compliance conditions the architecture, it does not follow it.',
+    },
+  ]}
+/>
+
+## Exit quiz
+
+<Quiz
+  id="m9-quiz"
+  title="Three end-of-pathway questions"
+  questions={[
+    {
+      q: 'An SFTP interface works in pre-production. Is the integration project validated?',
+      options: [
+        'Yes, the technical proof is enough.',
+        'No: the Information, Business, Organisation and Legal layers remain.',
+        'Yes, if the technical documentation is up to date.',
+        'No, you must migrate to an API first.',
+      ],
+      answer: 1,
+      explain:
+        'Technical acceptance proves infrastructure and part of the application. The rest of the project has not been assessed yet.',
+    },
+    {
+      q: 'A flow sends a local code unknown to the receiver. Which ReEIF layer is primarily concerned?',
+      options: ['Infrastructure', 'Application', 'Information', 'Legal'],
+      answer: 2,
+      explain:
+        'The data flows and is structurally valid. What is missing is meaning alignment — the Information layer.',
+    },
+    {
+      q: 'Nobody knows who corrects a data error in production. What kind of problem is that?',
+      options: [
+        'A technical problem.',
+        'A format problem.',
+        'An organisational and governance problem.',
+        'A performance problem.',
+      ],
+      answer: 2,
+      explain:
+        'No technical fix survives the absence of an owner. It is a governance decision, to be taken before go-live.',
+    },
+    {
+      q: 'When should regulatory compliance be handled?',
+      options: [
+        'At the end, once the solution is stable.',
+        'From framing: it conditions architecture, access, traces and contracts.',
+        'Only if sensitive data is involved.',
+        'Only for cross-border exchanges.',
+      ],
+      answer: 1,
+      explain:
+        'Handled last, compliance overturns choices already implemented. Handled at framing, it steers them.',
+    },
+  ]}
+/>
+
+## Takeaway
+
+A successful integration is an **alignment**. Technology, syntax, semantics, business, responsibility
+and compliance must be thought through together.
+
+ReEIF provides the map; the integration file documents the journey.
+
+You now have the full toolkit. The final project asks you to use it: design, specify, then build an
+interoperable prototype connected to a FHIR server.

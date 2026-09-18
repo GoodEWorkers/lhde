@@ -1,0 +1,216 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+
+/* ------------------------------------------------------------------ */
+/* Clash Display — self-hosted (Fontshare, free licence)               */
+/* ------------------------------------------------------------------ */
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('/fonts/ClashDisplay-500.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('/fonts/ClashDisplay-600.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'ClashDisplay';
+  src: url('/fonts/ClashDisplay-700.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ------------------------------------------------------------------ */
+/* Design tokens — palette and type scale mirrored from the reference  */
+/* theme (goodeworkers.org): flat, high-contrast, orange accent.       */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-black: #111111;
+  --color-black-light: #1d1d1d;
+  --color-black-soft: #262626;
+  --color-white: #f8f8f8;
+  --color-white-pure: #ffffff;
+  --color-grey: #ececec;
+  --color-ashgray: #e0e0e0;
+  --color-midgray: #8a8a8a;
+  --color-orange: #fd5e09;
+  --color-yellow: #fdc959;
+  --color-purple: #b3a0cf;
+
+  --font-clash: 'ClashDisplay', 'Arial Narrow', Impact, system-ui, sans-serif;
+  --font-inter: 'Inter Variable', Inter, Arial, sans-serif;
+
+  --radius-card: 1rem;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 6rem;
+  }
+
+  body {
+    font-family: var(--font-inter);
+    background-color: var(--color-black);
+    color: var(--color-grey);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-clash);
+    font-weight: 600;
+    letter-spacing: -0.01em;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-orange);
+    outline-offset: 3px;
+  }
+
+  ::selection {
+    background: var(--color-orange);
+    color: var(--color-white-pure);
+  }
+}
+
+@layer components {
+  /* Pill call-to-action, the signature control of the reference theme. */
+  .pill,
+  .pill-orange,
+  .pill-yellow,
+  .pill-purple,
+  .pill-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-full px-7 py-4 text-center font-bold transition-transform duration-200 ease-in hover:scale-105;
+  }
+  .pill-orange {
+    @apply bg-orange text-white-pure;
+  }
+  .pill-yellow {
+    @apply bg-yellow text-black;
+  }
+  .pill-purple {
+    @apply bg-purple text-black;
+  }
+  .pill-ghost {
+    @apply border-2 border-orange text-orange hover:bg-orange hover:text-black;
+  }
+
+  .container-x {
+    @apply mx-auto max-w-[96rem] px-4 md:px-8;
+  }
+
+  .eyebrow {
+    @apply font-clash text-sm font-bold tracking-[0.18em] text-orange uppercase;
+  }
+
+  .card {
+    @apply rounded-2xl bg-black-light p-6 md:p-8;
+  }
+
+  .card-light {
+    @apply rounded-2xl bg-grey p-6 text-black md:p-8;
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Long-form module body copy.                                         */
+/*                                                                     */
+/* Every rule is scoped away from `.not-prose` subtrees so that the     */
+/* interactive components (quizzes, activities, callouts) keep their    */
+/* own typography instead of inheriting article styling.               */
+/* ------------------------------------------------------------------ */
+.prose-interop {
+  @apply text-base leading-[1.75] text-ashgray;
+}
+.prose-interop > * + * {
+  @apply mt-6;
+}
+.prose-interop :where(h2):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-16 font-clash text-3xl leading-tight text-white md:text-4xl;
+}
+.prose-interop :where(h3):not(:where(.not-prose, .not-prose *)) {
+  @apply mt-10 font-clash text-xl leading-tight text-white md:text-2xl;
+}
+.prose-interop :where(h2, h3):not(:where(.not-prose, .not-prose *)) + * {
+  @apply mt-4;
+}
+.prose-interop :where(strong):not(:where(.not-prose, .not-prose *)) {
+  @apply font-bold text-white;
+}
+.prose-interop :where(a):not(:where(.not-prose, .not-prose *)) {
+  @apply text-orange underline underline-offset-4 hover:text-yellow;
+}
+.prose-interop :where(ul):not(:where(.not-prose, .not-prose *)) {
+  @apply list-none space-y-3 pl-0;
+}
+.prose-interop :where(ul):not(:where(.not-prose, .not-prose *)) > li {
+  @apply relative pl-6;
+}
+.prose-interop :where(ul):not(:where(.not-prose, .not-prose *)) > li::before {
+  content: '';
+  @apply absolute top-[0.7em] left-0 h-1.5 w-1.5 rounded-full bg-orange;
+}
+.prose-interop :where(ol):not(:where(.not-prose, .not-prose *)) {
+  @apply list-decimal space-y-3 pl-6 marker:font-bold marker:text-orange;
+}
+.prose-interop :where(blockquote):not(:where(.not-prose, .not-prose *)) {
+  @apply border-l-4 border-purple pl-6 text-lg text-white italic;
+}
+.prose-interop :where(code):not(:where(.not-prose, .not-prose *)) {
+  @apply rounded bg-black-soft px-1.5 py-0.5 font-mono text-[0.9em] text-yellow;
+}
+.prose-interop :where(pre):not(:where(.not-prose, .not-prose *)) {
+  @apply overflow-x-auto rounded-2xl border border-white/10 bg-black-soft p-5 text-sm;
+}
+.prose-interop :where(pre):not(:where(.not-prose, .not-prose *)) code {
+  @apply bg-transparent p-0 text-ashgray;
+}
+.prose-interop :where(table):not(:where(.not-prose, .not-prose *)) {
+  @apply w-full border-collapse text-left text-sm;
+}
+.prose-interop :where(table):not(:where(.not-prose, .not-prose *)) th {
+  @apply border-b-2 border-orange/50 py-3 pr-4 font-clash text-white;
+}
+.prose-interop :where(table):not(:where(.not-prose, .not-prose *)) td {
+  @apply border-b border-white/10 py-3 pr-4 align-top;
+}
+.prose-interop :where(hr):not(:where(.not-prose, .not-prose *)) {
+  @apply my-12 border-white/10;
+}
+
+/* Tables are the densest element on a module page; let them scroll. */
+.prose-interop :where(table):not(:where(.not-prose, .not-prose *)) {
+  display: block;
+  overflow-x: auto;
+}
+
+/* Prose keeps a readable measure; activities and diagrams break out of it. */
+@media (min-width: 1024px) {
+  .prose-interop > .not-prose {
+    margin-inline: -4rem;
+  }
+}
+@media (min-width: 1280px) {
+  .prose-interop > .not-prose {
+    margin-inline: -7rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

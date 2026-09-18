@@ -1,0 +1,57 @@
+---
+import { getLangFromUrl, useTranslations } from '../i18n/utils';
+
+interface Props {
+  total: number;
+}
+
+const { total } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const t = useTranslations(lang);
+---
+
+<section class="not-prose rounded-2xl bg-black-light p-6 md:p-8" data-progress data-total={total}>
+  <div class="flex flex-wrap items-end justify-between gap-4">
+    <div>
+      <p class="eyebrow">{t('progress.title')}</p>
+      <p class="mt-2 font-clash text-3xl text-white">
+        <span data-progress-count>0</span>
+        <span class="text-midgray">/ {total}</span>
+      </p>
+      <p class="mt-1 text-xs text-midgray" data-progress-empty>{t('progress.none')}</p>
+    </div>
+    <button type="button" class="text-xs font-bold text-midgray underline hover:text-orange" data-progress-reset>
+      {t('progress.reset')}
+    </button>
+  </div>
+
+  <div class="mt-5 h-2 w-full overflow-hidden rounded-full bg-black-soft">
+    <div class="h-full rounded-full bg-orange transition-[width] duration-500" style="width:0%" data-progress-bar></div>
+  </div>
+  <p class="mt-3 text-xs text-midgray">{t('progress.stored')}</p>
+</section>
+
+<script>
+  import { completedModules, resetProgress } from '../lib/progress';
+
+  document.querySelectorAll<HTMLElement>('[data-progress]').forEach((widget) => {
+    const total = Number(widget.dataset.total) || 1;
+    const count = widget.querySelector<HTMLElement>('[data-progress-count]')!;
+    const bar = widget.querySelector<HTMLElement>('[data-progress-bar]')!;
+    const empty = widget.querySelector<HTMLElement>('[data-progress-empty]')!;
+
+    const render = (list: string[]) => {
+      count.textContent = String(list.length);
+      bar.style.width = `${Math.round((list.length / total) * 100)}%`;
+      empty.hidden = list.length > 0;
+    };
+
+    widget.querySelector<HTMLButtonElement>('[data-progress-reset]')!.addEventListener('click', () => {
+      resetProgress();
+      location.reload();
+    });
+
+    document.addEventListener('interop:progress', (e) => render((e as CustomEvent<string[]>).detail));
+    render(completedModules());
+  });
+</script>

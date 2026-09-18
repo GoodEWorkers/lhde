@@ -1,0 +1,44 @@
+---
+export interface Column {
+  label: string;
+  title: string;
+  points: string[];
+  tone?: 'orange' | 'purple' | 'yellow' | 'neutral';
+}
+
+interface Props {
+  columns: Column[];
+  caption?: string;
+}
+
+const { columns, caption } = Astro.props;
+
+const tones = {
+  orange: 'border-orange text-orange',
+  purple: 'border-purple text-purple',
+  yellow: 'border-yellow text-yellow',
+  neutral: 'border-white/30 text-midgray',
+} as const;
+---
+
+<div class="not-prose my-12">
+  <div class:list={['grid gap-4', columns.length === 2 ? 'md:grid-cols-2' : 'md:grid-cols-3']}>
+    {
+      columns.map((column) => (
+        <div class={`rounded-2xl border-t-4 bg-black-light p-6 ${tones[column.tone ?? 'neutral']}`}>
+          <p class="font-clash text-xs font-bold tracking-[0.18em] uppercase">{column.label}</p>
+          <h4 class="mt-2 font-clash text-xl text-white">{column.title}</h4>
+          <ul class="mt-4 space-y-2.5 text-sm leading-relaxed text-ashgray">
+            {column.points.map((point) => (
+              <li class="relative pl-5">
+                <span class="absolute top-[0.55em] left-0 h-1.5 w-1.5 rounded-full bg-current" aria-hidden="true" />
+                {point}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))
+    }
+  </div>
+  {caption && <p class="mt-5 text-center text-sm text-midgray italic">{caption}</p>}
+</div>

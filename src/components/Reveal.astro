@@ -1,0 +1,36 @@
+---
+/**
+ * Generation-effect prompt: the learner commits to an answer in their head
+ * (or out loud) before opening it. Used for the "guided example" moments.
+ */
+import { getLangFromUrl } from '../i18n/utils';
+
+interface Props {
+  question: string;
+  label?: string;
+}
+
+const { question, label } = Astro.props;
+const lang = getLangFromUrl(Astro.url);
+const fallback = lang === 'fr' ? 'Répondez, puis ouvrez' : 'Answer, then open';
+---
+
+<details class="not-prose group my-6 rounded-xl border border-white/15 bg-black-light">
+  <summary
+    class="flex cursor-pointer list-none items-start gap-3 px-5 py-4 [&::-webkit-details-marker]:hidden"
+  >
+    <span class="mt-0.5 shrink-0 font-clash text-sm font-bold tracking-widest text-purple uppercase">
+      {label ?? fallback}
+    </span>
+    <span class="flex-1 text-white">{question}</span>
+    <span
+      class="shrink-0 font-clash text-xl text-orange transition-transform duration-200 group-open:rotate-45"
+      aria-hidden="true">+</span
+    >
+  </summary>
+  <div
+    class="border-t border-white/10 px-5 pt-4 pb-5 text-sm leading-relaxed text-ashgray [&>*+*]:mt-3 [&_strong]:text-white"
+  >
+    <slot />
+  </div>
+</details>

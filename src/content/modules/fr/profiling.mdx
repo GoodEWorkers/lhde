@@ -1,0 +1,330 @@
+---
+route: profiling
+lang: fr
+order: 7
+phase: 3
+level: advanced
+title: Le profilage
+subtitle: Des standards génériques aux spécifications réellement implémentables.
+outcome: >-
+  Distinguer standard, profil, guide d’implémentation et test de conformité, et identifier ce qu’un
+  profil FHIR peut contraindre : cardinalités, types, bindings, extensions et invariants.
+duration: 55
+question: Pourquoi « valide selon le standard » ne veut pas dire « interopérable » ?
+agenda:
+  - Pourquoi profiler un standard
+  - Standard, profil, guide, conformance
+  - Le modèle IHE — acteurs et transactions
+  - Le profilage FHIR — StructureDefinition
+  - Valider, et rendre l’interopérabilité vérifiable
+argus: >-
+  Ne vous contentez pas « d’utiliser Appointment ». Définissez un usage commun, testable et
+  exploitable : éléments obligatoires, identifiants, codes de statut, extensions, et une instance
+  JSON valide accompagnée de son test.
+sources:
+  - MCLB 7 — Focus sur le profilage (XiA Educathon, Fyrstain)
+---
+
+import Callout from '../../../components/Callout.astro';
+import CardGrid from '../../../components/CardGrid.astro';
+import CompareGrid from '../../../components/CompareGrid.astro';
+import MatchActivity from '../../../components/MatchActivity.astro';
+import Quiz from '../../../components/Quiz.astro';
+import Reveal from '../../../components/Reveal.astro';
+import StepFlow from '../../../components/StepFlow.astro';
+
+## La couche intermédiaire manquante
+
+Un standard générique est **volontairement large** : il doit couvrir beaucoup de cas d’usage. Il
+définit un vocabulaire commun, des structures et des mécanismes généraux — FHIR `Patient`,
+`Observation`, `Encounter`.
+
+Sur le terrain, cette largeur devient un problème : trop d’éléments optionnels, plusieurs façons
+correctes de représenter la même chose, choix de terminologie ouverts. Un profil **réduit l’espace
+des choix** pour un contexte donné, afin de rendre l’échange vérifiable et reproductible.
+
+<Callout variant="key">
+Sans profilage, « valide selon le standard » ne signifie pas « interopérable dans mon projet ».
+</Callout>
+
+## Quatre mots, quatre objets différents
+
+<CardGrid
+  columns={4}
+  cards={[
+    {
+      tag: 'Standard',
+      title: 'Le modèle générique',
+      body: 'Le modèle et les règles de base. Ex. HL7 FHIR, DICOM, HL7 v2.',
+    },
+    {
+      tag: 'Profil',
+      title: 'Le standard contraint',
+      body: 'Un standard restreint pour un contexte. Ex. un Patient national, une Observation de laboratoire européenne.',
+    },
+    {
+      tag: 'Guide (IG)',
+      title: 'La boîte de livraison',
+      body: 'Un ensemble cohérent de profils, règles, exemples et documentation, humainement lisible et techniquement exploitable.',
+    },
+    {
+      tag: 'Conformance',
+      title: 'La preuve',
+      body: 'La démonstration que l’implémentation respecte les règles attendues : validation, scénarios, jeux de données.',
+    },
+  ]}
+  caption="Le profilage est une activité de gouvernance : il fixe les choix communs que les systèmes doivent respecter."
+/>
+
+## Le modèle IHE — profiler un workflow complet
+
+IHE ne réinvente pas les standards : il **assemble des standards existants pour résoudre un cas
+d’usage**.
+
+<StepFlow
+  caption="Un profil IHE spécifie un usage complet : pas seulement le format, mais le rôle de chaque système et les transactions attendues."
+  steps={[
+    { title: 'Cas d’usage', body: 'Quel problème concret ? Ex. retrouver un patient.' },
+    { title: 'Acteurs', body: 'Quels systèmes jouent quel rôle ? Ex. Consumer / Supplier.' },
+    { title: 'Transactions', body: 'Quels échanges entre acteurs ? Ex. requête / réponse.' },
+    { title: 'Standards', body: 'Quels standards sous-jacents ? HL7 v2, CDA, DICOM, web services.' },
+    { title: 'Profil testable', body: 'Un profil précis, documenté, éprouvé en Connectathon.' },
+  ]}
+/>
+
+Exemples toujours au cœur de nombreux SIH : **PDQ / PIX** pour l’identité, **XDS** pour le partage
+documentaire, **XUA / ATNA** pour la sécurité et l’audit, **PAM** pour les mouvements, **SWF / RAD**
+pour le workflow imagerie.
+
+## Le profilage FHIR — la StructureDefinition
+
+Un profil FHIR **est** une `StructureDefinition`. Ce n’est pas une documentation PDF : c’est une
+règle **lisible par une machine**, donc exécutable et testable.
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Cardinalité', title: 'Combien d’occurrences ?', body: '0..1, 1..1, 0..* — ce qui est obligatoire, ce qui est interdit, ce qui est répétable.' },
+    { tag: 'Type', title: 'Quel datatype ?', body: 'Quels types et quelles références sont acceptés pour cet élément.' },
+    { tag: 'Terminologie', title: 'Quels codes autorisés ?', body: 'Binding vers un ValueSet, avec une force donnée : required, extensible, preferred, example.' },
+    { tag: 'Slicing', title: 'Découper une liste', body: 'Découper une liste répétable en « tranches » nommées — par exemple un identifiant national et un identifiant local.' },
+    { tag: 'Extensions', title: 'Ajouter le manquant', body: 'Ajouter un besoin absent du modèle de base sans casser la compatibilité.' },
+    { tag: 'Invariants', title: 'Règles logiques', body: 'Contraintes supplémentaires exprimées en FHIRPath, donc testables automatiquement.' },
+  ]}
+/>
+
+```
+Patient (FHIR Core)
+  └── identifier  0..*        →  Patient-FR
+        └── identifier  1..*  (slice : INS 1..1, local 0..*)
+              └── system  1..1  fixé
+              └── value   1..1
+```
+
+### Les profils se superposent : global → local
+
+<StepFlow
+  caption="Le profilage permet d’adapter sans réinventer : la compatibilité vient du modèle partagé et des contraintes explicites."
+  steps={[
+    { title: 'FHIR Core', body: 'Ressources génériques, datatypes, terminologies de base.' },
+    { title: 'Profil international', body: 'Contraintes globales ou européennes : IPS, guides de domaine.' },
+    { title: 'Profil national', body: 'Règles nationales, identifiants, terminologies du pays.' },
+    { title: 'Profil projet', body: 'Règles de l’établissement, flux local, intégration réelle.' },
+    { title: 'Tests', body: 'Instances d’exemple, validation, scénarios rejouables.' },
+  ]}
+/>
+
+<Callout variant="warning">
+Une instance valide selon FHIR Core n’est **pas** nécessairement conforme au profil national. La
+validation doit se faire contre le profil applicable, pas contre le socle générique.
+</Callout>
+
+## Le guide d’implémentation rassemble les artefacts
+
+<CardGrid
+  columns={3}
+  cards={[
+    { tag: 'Narratif', title: 'Pourquoi et pour qui', body: 'Pages explicatives, cas d’usage, périmètre, gouvernance.' },
+    { tag: 'Profiles', title: 'Les règles machine', body: 'StructureDefinition pour les ressources, les datatypes et les extensions.' },
+    { tag: 'Terminologie', title: 'Le sens', body: 'CodeSystem, ValueSet, ConceptMap, NamingSystem.' },
+    { tag: 'Exemples', title: 'Le concret', body: 'Instances représentatives et cas limites.' },
+    { tag: 'Conformance', title: 'Les attendus', body: 'CapabilityStatement, opérations attendues, interactions supportées.' },
+    { tag: 'Tests', title: 'La preuve', body: 'Validation, scénarios, jeux de données, TestScript ou collections de requêtes.' },
+  ]}
+  caption="Le profil dit « ce qui est attendu ». L’IG dit aussi « comment l’utiliser et comment le vérifier »."
+/>
+
+## Valider : passer de l’intention à la preuve
+
+Une instance JSON ou XML, un profil `StructureDefinition`, une terminologie (`ValueSet`,
+`CodeSystem`) et un validateur : le résultat est un verdict — OK, avertissements, erreurs.
+
+<CompareGrid
+  columns={[
+    {
+      label: 'Ce que le validateur vérifie',
+      title: 'La conformité structurelle et sémantique',
+      tone: 'orange',
+      points: [
+        'Structure, cardinalités, types',
+        'Extensions autorisées',
+        'Bindings et codes autorisés',
+        'Invariants et références',
+      ],
+    },
+    {
+      label: 'Ce qu’il ne vérifie pas seul',
+      title: 'Le contexte',
+      tone: 'yellow',
+      points: [
+        'Le bon workflow métier',
+        'La responsabilité organisationnelle',
+        'La pertinence clinique de la donnée',
+      ],
+    },
+    {
+      label: 'Pourquoi c’est crucial',
+      title: 'L’industrialisation',
+      tone: 'purple',
+      points: [
+        'Industrialiser les tests',
+        'Comparer des implémentations entre elles',
+        'Sécuriser les échanges avant mise en production',
+      ],
+    },
+  ]}
+/>
+
+<Reveal question="Le validateur affiche « 0 error, 3 warnings ». Peut-on mettre en production ?">
+Cela dépend entièrement de ce que disent les avertissements et de ce que couvre le profil. Trois
+questions à poser :
+
+1. Les warnings portent-ils sur des **bindings `extensible`** non respectés ? Si oui, quelqu’un a-t-il
+   justifié et documenté l’écart ?
+2. Le profil validé est-il bien le **profil applicable** (national ou projet) et non FHIR Core ?
+3. Les scénarios **métier** ont-ils été rejoués ? Le validateur ne dit rien du moment où la donnée
+   arrive ni de qui agit.
+</Reveal>
+
+## Exercice — profiler un rendez-vous pour Argus
+
+Cas : une application hospitalière doit superviser les flux de patients, de salles et de ressources.
+
+| Question | À trancher |
+| --- | --- |
+| Données nécessaires | Patient, rendez-vous, service, lieu, ressource matérielle, statut, priorité, retard |
+| Ressources candidates | `Patient`, `Appointment`, `Schedule`, `Slot`, `Location`, `Organization`, `Device` |
+| Questions de profilage | Quels éléments obligatoires ? Quels identifiants ? Quels codes de statut ? Quelles extensions ? |
+| Preuve attendue | Une instance JSON valide + le profil + le ValueSet + un test de validation |
+
+### Parcours guidé — explorer un profil existant
+
+1. Ouvrez un guide d’implémentation FHIR et choisissez un profil.
+2. Relevez l’URL canonique, la ressource de base et le statut de maturité.
+3. Identifiez trois éléments contraints et leurs cardinalités.
+4. Trouvez un binding terminologique et sa force.
+5. Localisez une instance d’exemple et expliquez pourquoi elle est conforme.
+6. Décrivez comment ce profil serait validé dans un projet réel.
+
+Profils suggérés pour démarrer : `Patient`, `Observation`, `DiagnosticReport`, `Appointment`.
+
+## Activité — que contraint-on ici ?
+
+<MatchActivity
+  id="profiling-mechanisms"
+  title="Quel mécanisme de profilage utiliser ?"
+  instruction="Pour chaque exigence, choisissez le mécanisme de profilage FHIR adapté."
+  options={[
+    { id: 'cardinality', label: 'Cardinalité' },
+    { id: 'binding', label: 'Binding' },
+    { id: 'slicing', label: 'Slicing' },
+    { id: 'extension', label: 'Extension' },
+    { id: 'invariant', label: 'Invariant' },
+  ]}
+  items={[
+    {
+      text: 'Le numéro d’identité nationale devient obligatoire et unique sur Patient.',
+      answer: 'cardinality',
+      note: 'On passe de 0..* à 1..1 sur la tranche concernée.',
+    },
+    {
+      text: 'Patient peut porter à la fois un identifiant national et un identifiant local, chacun avec ses règles.',
+      answer: 'slicing',
+      note: 'Découpage nommé d’une liste répétable, discriminé par system.',
+    },
+    {
+      text: 'Le statut de lit doit obligatoirement provenir du référentiel commun de l’établissement.',
+      answer: 'binding',
+      note: 'Binding required vers le ValueSet de statuts.',
+    },
+    {
+      text: 'Il faut transporter le niveau de priorité logistique, qui n’existe dans aucune ressource de base.',
+      answer: 'extension',
+      note: 'Ajout d’un besoin absent du core sans casser la compatibilité.',
+    },
+    {
+      text: 'La date de fin d’un rendez-vous doit toujours être postérieure à sa date de début.',
+      answer: 'invariant',
+      note: 'Règle logique exprimable en FHIRPath, donc testable automatiquement.',
+    },
+  ]}
+/>
+
+## Mini-QCM
+
+<Quiz
+  id="m7-quiz"
+  title="Quatre questions sur le profilage"
+  questions={[
+    {
+      q: 'Un profil FHIR sert principalement à…',
+      options: [
+        'documenter un standard en français.',
+        'contraindre un modèle générique pour un contexte précis.',
+        'remplacer le standard de base.',
+        'accélérer les échanges réseau.',
+      ],
+      answer: 1,
+      explain:
+        'Le profil réduit l’espace des choix : cardinalités, types, terminologies, extensions et invariants deviennent explicites et testables.',
+    },
+    {
+      q: 'Un profil IHE décrit généralement…',
+      options: [
+        'un format de fichier.',
+        'un cas d’usage, des acteurs, des transactions et les standards utilisés.',
+        'une terminologie nationale.',
+        'une architecture matérielle.',
+      ],
+      answer: 1,
+      explain:
+        'IHE profile des standards existants en spécifiant qui fait quoi, dans quel ordre, avec quels échanges — et le rend testable.',
+    },
+    {
+      q: 'Un guide d’implémentation FHIR ne contient que du texte explicatif.',
+      options: ['Vrai', 'Faux'],
+      answer: 1,
+      explain:
+        'Faux : il contient aussi des artefacts lisibles par une machine — profils, terminologies, exemples, conformance et tests.',
+    },
+    {
+      q: 'Une instance valide selon FHIR Core est-elle forcément conforme au profil national ?',
+      options: ['Oui', 'Non'],
+      answer: 1,
+      explain:
+        'Non : elle doit en plus satisfaire les contraintes du profil applicable. C’est exactement le rôle du profilage.',
+    },
+  ]}
+/>
+
+## À retenir
+
+Le profilage transforme un standard en **langage d’implémentation partagé**.
+
+- Un standard générique laisse trop de liberté pour garantir l’interopérabilité réelle.
+- Les profils réduisent les choix, rendent les règles explicites et permettent la validation.
+- IHE profile des workflows complets avec acteurs et transactions ; FHIR profile les ressources et
+  les artefacts d’échange.
+- Un IG combine profils, terminologies, exemples, règles et tests.
+
+La bonne question n’est donc pas « quel standard ? », mais **« quel profil pour quel usage ? »**.
